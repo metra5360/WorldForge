@@ -1,0 +1,531 @@
+<!DOCTYPE html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>WorldForge</title><meta name="theme-color" content="#080d18"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b1220;--panel:#121d30e8;--panel-2:#172640;--tx:#f0f5ff;--mu:#a5b4cc;--ac:#5ea7ff;--ac2:#8b6cff;--bd:#2b3d5b;--danger:#ff6f82;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:light){:root{--bg:#e9eff8;--panel:#f9fbffea;--panel-2:#edf3fd;--tx:#17243a;--mu:#62738c;--bd:#d2ddec}}
+*{box-sizing:border-box}html,body{height:100%;margin:0}body{background:radial-gradient(circle at 15% 0,#213c68 0,transparent 31%),var(--bg);color:var(--tx);font:13px Inter,ui-sans-serif,system-ui,sans-serif;display:flex;flex-direction:column;letter-spacing:.01em}
+#top{display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:10px 14px;background:var(--panel);backdrop-filter:blur(18px);border-bottom:1px solid var(--bd);box-shadow:0 5px 22px #0003;z-index:3}#top b{font-size:17px;letter-spacing:-.04em;margin-right:4px}#top b:before{content:'✦';color:#7fb5ff;margin-right:6px}#top #stat{margin-left:auto;font-size:12px}
+button,select,input{font:inherit;color:var(--tx);background:var(--panel-2);border:1px solid var(--bd);border-radius:9px;padding:7px 9px;transition:.18s ease}button{cursor:pointer;font-weight:600}button:hover{border-color:var(--ac);transform:translateY(-1px);box-shadow:0 5px 14px #0003}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--ac);outline-offset:2px}button.on{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border-color:transparent;box-shadow:0 5px 15px #3479a755}
+#main{flex:1;display:flex;min-height:0;position:relative}aside{width:302px;overflow:auto;background:var(--panel);backdrop-filter:blur(18px);border-right:1px solid var(--bd);padding:10px;flex:none}aside::-webkit-scrollbar{width:9px}aside::-webkit-scrollbar-thumb{background:var(--bd);border-radius:9px}
+details{margin-bottom:8px;border:1px solid var(--bd);background:#14203866;border-radius:12px;padding:5px 9px;box-shadow:inset 0 1px #ffffff08}summary{cursor:pointer;font-weight:750;padding:4px 0;letter-spacing:.015em}summary::marker{color:var(--ac)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:7px;margin:6px 0}.row input[type=number]{width:102px}.row input[type=range]{flex:1}.g{display:grid;grid-template-columns:1fr 1fr;gap:5px}.g button{font-size:12px;text-align:left}.mu{color:var(--mu)}
+#views{flex:1;display:flex;min-width:0;gap:1px;background:var(--bd)}.pane{position:relative;flex:1;min-width:0;overflow:hidden;background:#05080c}canvas{display:block;width:100%;height:100%}.pane:before{content:'';position:absolute;inset:0;pointer-events:none;border:1px solid #ffffff12;z-index:1}
+.ro{position:absolute;left:10px;bottom:10px;background:#08111ed9;color:#fff;padding:6px 9px;border:1px solid #ffffff20;border-radius:8px;font-size:12px;pointer-events:none;backdrop-filter:blur(8px)}
+#modal{position:fixed;inset:0;background:#050914aa;backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:9}#modal[hidden]{display:none}#mbox{background:var(--panel);border:1px solid var(--bd);box-shadow:0 25px 70px #0009;padding:16px;border-radius:16px;max-width:90vw;width:560px}#mbox textarea{width:100%;height:220px;box-sizing:border-box;background:var(--bg);color:var(--tx)}#mbox img{max-width:100%}
+.city-hint{font-size:11px;line-height:1.45;padding:6px 8px;border-radius:8px;background:#5ea7ff16;color:var(--mu)}#cityInfo{font-size:11px!important;line-height:1.45}
+</style>
+<style id="ui2">
+:root{--bg:#080d18;--panel:rgba(16,24,44,.8);--panel-2:#16223e;--tx:#e9efff;--mu:#94a7c9;--ac:#5aa2ff;--ac2:#8f7bff;--bd:rgba(116,150,214,.22);--card:rgba(22,33,60,.55);--ok:#3ddc97;--warn:#ffcc66;--danger:#ff6f82;--r:12px;color-scheme:dark}
+@media(prefers-color-scheme:light){:root{--bg:#e9eefb;--panel:rgba(255,255,255,.86);--panel-2:#eef3fd;--tx:#16233c;--mu:#5c6f92;--bd:rgba(30,60,120,.16);--card:rgba(255,255,255,.7);--ok:#12885b;--warn:#9a6a08;--danger:#c8324a;color-scheme:light}}
+body{font:13px/1.45 Inter,ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased;background:radial-gradient(1100px 560px at 15% -10%,#1d3768 0,transparent 60%),radial-gradient(800px 460px at 108% 108%,#251d57 0,transparent 55%),var(--bg)}
+#top{gap:8px;padding:11px 16px;background:var(--panel);border-bottom:1px solid var(--bd);box-shadow:0 6px 28px rgba(0,0,0,.28)}
+#tbar{display:flex;gap:8px;flex:1;flex-wrap:wrap;align-items:center;min-width:0}
+#top b{font-size:18px;font-weight:800;letter-spacing:-.02em;background:linear-gradient(90deg,#9cc6ff,#b9a2ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+#top b:before{-webkit-text-fill-color:#7fb5ff;color:#7fb5ff;margin-right:7px}
+#top input,#top select{background:var(--panel-2);border-radius:10px;border-color:var(--bd)}
+#top #stat{margin-left:auto;font-size:12px;background:var(--card);border:1px solid var(--bd);border-radius:999px;padding:5px 13px;max-width:46vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+button,select,input{transition:border-color .18s ease,box-shadow .18s ease,background-color .18s ease,transform .1s ease,opacity .18s ease;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button{border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02)),var(--panel-2)}
+button:hover{transform:none;box-shadow:none;border-color:var(--ac)}
+@media(hover:hover){button:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(0,0,0,.35)}}
+button:active{transform:translateY(0) scale(.95)}
+button:disabled{opacity:.38;cursor:not-allowed;transform:none!important;box-shadow:none;border-color:var(--bd)}
+button.on{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border-color:transparent;box-shadow:0 6px 18px rgba(90,162,255,.35)}
+.g button.on{box-shadow:0 4px 12px rgba(90,162,255,.4)}
+select{cursor:pointer}
+input[type=color]{padding:2px;width:46px;height:30px;cursor:pointer}
+input[type=color]::-webkit-color-swatch{border:none;border-radius:6px}
+input[type=color]::-moz-color-swatch{border:none;border-radius:6px}
+input[type=checkbox]{accent-color:var(--ac);width:15px;height:15px;vertical-align:-2px;cursor:pointer}
+label{display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border-radius:8px;cursor:pointer;transition:background .15s ease}
+label:hover{background:rgba(122,160,255,.12)}
+input[type=range]{-webkit-appearance:none;appearance:none;height:20px;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:5px;border-radius:5px;background:linear-gradient(90deg,var(--ac),var(--ac2));opacity:.55}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;margin-top:-5.5px;border-radius:50%;background:#fff;border:2px solid var(--ac);box-shadow:0 2px 7px rgba(0,0,0,.45);transition:transform .12s ease}
+input[type=range]:active::-webkit-slider-thumb{transform:scale(1.2)}
+input[type=range]::-moz-range-track{height:5px;border-radius:5px;background:linear-gradient(90deg,var(--ac),var(--ac2));opacity:.55}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border:2px solid var(--ac);border-radius:50%;background:#fff}
+input[type=file]{font-size:11px;padding:5px 6px}
+aside{width:308px;background:var(--panel);border-right:1px solid var(--bd);padding:12px}
+aside::-webkit-scrollbar{width:9px}
+aside::-webkit-scrollbar-thumb{background:var(--bd);border-radius:9px;border:2px solid transparent;background-clip:padding-box}
+aside::-webkit-scrollbar-thumb:hover{background:#5f7fb8;background-clip:padding-box}
+details{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:10px;padding:2px 10px 9px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+summary{list-style:none;display:flex;align-items:center;gap:8px;padding:9px 2px;margin:0;font-weight:750;letter-spacing:.015em;cursor:pointer;border-radius:8px;user-select:none;-webkit-user-select:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:'';flex:none;width:7px;height:7px;border-right:2px solid var(--ac);border-bottom:2px solid var(--ac);transform:rotate(-45deg);transition:transform .2s ease;margin-left:2px;margin-top:-2px}
+details[open]>summary::before{transform:rotate(45deg);margin-top:0}
+summary:hover{color:#bcd4ff}
+@media(prefers-color-scheme:light){summary:hover{color:#2c56a8}}
+.row{gap:8px;margin:7px 0}
+.row input[type=number]{width:100px}
+.g{gap:6px}
+.g button{font-size:12px;text-align:left;padding:8px 9px;border-radius:10px}
+.mu{color:var(--mu)}
+.city-hint{font-size:11px;line-height:1.5;padding:8px 10px;border-radius:10px;background:rgba(90,162,255,.1);border:1px dashed rgba(90,162,255,.3);color:var(--mu)}
+#views{gap:2px;background:var(--bd)}
+.pane:before{border-radius:4px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+canvas{touch-action:none;-webkit-user-select:none;user-select:none}
+.ro{background:rgba(8,14,28,.85);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:6px 11px;font-size:12px;font-variant-numeric:tabular-nums}
+#lg{font-size:11px;line-height:1.55;padding:8px 10px;border-radius:10px}
+pre{font-variant-numeric:tabular-nums}
+#modal{background:rgba(4,8,18,.68);padding:16px}
+#mbox{background:var(--panel);border:1px solid var(--bd);box-shadow:0 30px 90px rgba(0,0,0,.6);padding:20px;border-radius:18px;animation:pop .18s ease}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+#mbox textarea{background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:10px;font-size:12px}
+#sbState{font-weight:700}
+#sbState[data-k=ok]{color:var(--ok)}
+#sbState:not([data-k=ok]){color:var(--warn)}
+#sbSql{font:11px/1.55 ui-monospace,Menlo,Consolas,monospace;background:rgba(0,0,0,.28);border:1px solid var(--bd);border-radius:10px;padding:9px;white-space:pre-wrap;max-height:130px;overflow:auto;margin:6px 0}
+@media(prefers-color-scheme:light){#sbSql{background:rgba(20,40,90,.06)}}
+@media(hover:hover) and (pointer:fine){#top,aside,#mbox{backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%)}.ro{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}#modal{backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}select{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2394a7c9' stroke-width='1.7' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:26px}}
+body.hide-side aside{display:none}
+#bSide{font-weight:700;white-space:nowrap}
+@media(max-width:980px){aside{position:absolute;left:0;top:0;bottom:0;z-index:5;width:300px;max-width:88vw;box-shadow:14px 0 44px rgba(0,0,0,.5)}}
+</style></head><body>
+<div id="top"><b>WorldForge</b><div id="tbar"><button id="bSide" title="Показати/приховати панель (Ctrl+B)">☰ Панель</button><input id="wname" style="width:130px"><select id="lib"></select>
+<button id="bNew">Нова (порожня)</button><button id="bRnd">Нова випадкова</button><button id="bSave">Зберегти</button><button id="bCopy">Копія</button><button id="bDel">Видалити</button><button id="bExp">Експорт JSON</button><button id="bImp">Імпорт</button><button id="bPng">PNG</button>
+<select id="vmode"><option value="both">2D + 3D</option><option value="2">Лише 2D</option><option value="3">Лише 3D</option></select></div><span id="stat" class="mu"></span></div>
+<div id="main"><aside>
+<details open><summary>Планета</summary>
+<div class="row">Радіус (×Земля)<input id="pr" type="number" step=".01"></div>
+<div class="row">Діаметр, км<input id="pd" type="number"></div>
+<div class="row">Площа, млн км²<input id="pa" type="number"></div>
+<div class="row">Гравітація, м/с²<input id="pg" type="number" step=".1"></div>
+<div class="row">Доба, год<input id="pday" type="number" step=".5"></div>
+<div class="row">Рівень моря<input id="psea" type="range" min="-5000" max="5000" step="10"><span id="seav"></span></div>
+<div class="row">Суша, %<input id="pland" type="number" min="1" max="99" value="30"><button id="bFit">Підігнати море</button></div>
+<div class="row">Найвища точка, м<input id="pmax" type="number" step="10"></div>
+<div class="row">Найнижча точка, м<input id="pmin" type="number" step="10"></div>
+<div class="row"><button id="bFitH">Виставити рельєф за висотами</button></div>
+<div class="mu">Вкажіть найвищу (над рівнем моря) і найнижчу (нижче рівня моря) точки — рельєф перетиснеться під них, рівень моря не зміниться.</div>
+<div class="row">Океан<input id="coc" type="color"></div><div class="row">Суша<input id="cld" type="color"></div><div class="row">Небо<input id="csk" type="color"></div><div class="row">Атмосфера<input id="cat" type="color"></div><div class="row">Лід<input id="cic" type="color"></div></details>
+<details open><summary>Інструменти</summary><div class="g" id="tools"></div>
+<div class="row">Розмір<input id="bsize" type="range" min="1" max="60" value="14"></div><div class="row">Сила<input id="bstr" type="range" min="1" max="100" value="50"></div>
+<div class="row"><button id="bUndo">↶ Скасувати</button><button id="bRedo">↷ Повторити</button></div><div class="mu" id="hist"></div>
+<div class="row">Текст позначки<input id="mtext" value="Позначка" style="width:120px"></div><button id="bClrM">Очистити позначки</button>
+<div><button id="bGen">Згенерувати материки</button></div></details>
+<details open><summary>Держави</summary><div class="row">Устрій<select id="countryMode"><option value="multi">Кілька держав (малюю кордони)</option><option value="single">Вся суша планети — одна країна</option></select></div><div class="row"><select id="stSel" style="flex:1"></select><button id="stAdd">+</button><button id="stDel">✕</button></div><div class="row">Назва<input id="stName" style="width:130px"></div><div class="row">Колір<input id="stCol" type="color"></div><div class="row">Прапор<input id="stF1" type="color"><input id="stF2" type="color"><select id="stFp"><option value="h">гор.</option><option value="v">верт.</option><option value="c">хрест</option></select></div><canvas id="stFlag" width="90" height="60" style="width:90px;height:60px;border:1px solid var(--bd)"></canvas>
+<div class="row"><input type="file" id="stFlagF" accept="image/*" style="flex:1;min-width:0"><button id="stFlagClr" title="Прибрати зображення, лишити намальований прапор">✕</button></div><pre id="stInfo" class="mu" style="white-space:pre-wrap;margin:4px 0"></pre><div class="mu">Кордони малюйте інструментами «Кордон +/−». Столицю задайте галочкою «Це столиця» у налаштуваннях міста.</div></details>
+<details open><summary>Області</summary><div class="row">Устрій<select id="regMode"><option value="multi">Кілька областей</option><option value="single">Одна область у державі</option></select></div><div class="row"><select id="regSel" style="flex:1"></select><button id="regAdd" title="Створити область">+</button><button id="regDel" title="Видалити область">✕</button></div><div class="row">Назва<input id="regName" style="width:150px" placeholder="Нова область"></div><div class="row">Колір<input id="regCol" type="color"></div><div class="row">Тип<select id="regKind"><option>Область</option><option>Провінція</option><option>Штат</option><option>Земля</option><option>Воєводство</option><option>Префектура</option><option>Графство</option></select></div><pre id="regInfo" class="mu" style="white-space:pre-wrap;margin:5px 0"></pre><div class="city-hint">Оберіть державу, створіть область і малюйте інструментом «Область +».</div></details>
+<details open><summary>Річки й озера</summary><div class="row"><select id="rivSel" style="flex:1"></select><button id="rivDel" title="Видалити річку">✕</button></div><div class="row">Назва<input id="rivName" style="width:150px" placeholder="Нова річка"></div><pre id="rivInfo" class="mu" style="white-space:pre-wrap;margin:5px 0"></pre><pre id="lakeInfo" class="mu" style="white-space:pre-wrap;margin:5px 0"></pre><div class="city-hint">Оберіть інструмент «Витік річки» й клікніть на суші: вода тектиме найкрутішим спуском до моря чи озера. Після зміни рельєфу русло перебудовується автоматично. Озера визначаються самі: це водойми, не з'єднані зі Світовим океаном.</div></details>
+<details open><summary>Райони</summary><div class="row"><select id="distSel" style="flex:1"></select><button id="distAdd" title="Створити район">+</button><button id="distDel" title="Видалити район">✕</button></div><div class="row">Назва<input id="distName" style="width:150px" placeholder="Новий район"></div><div class="row">Колір<input id="distCol" type="color"></div><div class="row">Тип<select id="distKind"><option>Район</option><option>Округ</option><option>Повіт</option><option>Громада</option><option>Муніципалітет</option></select></div><pre id="distInfo" class="mu" style="white-space:pre-wrap;margin:5px 0"></pre><div class="city-hint">Район належить області, вибраній у розділі «Області». Малюйте інструментом «Район +», стирайте «Район −». Район не вийде за межі своєї області.</div></details>
+<details open><summary>Дороги</summary><div class="row"><select id="roadSel" style="flex:1"></select><button id="roadDel" title="Видалити дорогу">✕</button></div><div class="row">Назва<input id="roadName" style="width:150px" placeholder="авто: Місто А — Місто Б"></div><div class="row">Тип<select id="roadType"><option value="main">Головна</option><option value="local">Місцева</option></select></div><div class="row">Колір<input id="roadCol" type="color" value="#f5bf52"><label><input type="checkbox" id="roadCurve"> Крива</label></div><div class="row" id="roadDrawRow" style="display:none"><button id="roadFinish">✔ Готово</button><button id="roadCancel" title="Скасувати">✕</button></div><pre id="roadInfo" class="mu" style="white-space:pre-wrap;margin:5px 0"></pre><div class="city-hint">Оберіть інструмент «Дорога» й клікайте точки на суші (порожня назва = «Місто А — Місто Б» автоматично); двічі клікніть, Enter або «Готово» — завершити. «Крива» згладжує лінію. Кінці дороги притягуються до міст і до кінців доріг того ж кольору (зелене коло). Колір і «Крива» змінюють вибрану дорогу, коли інструмент «Дорога» не активний. Де дві дороги перетинаються, автоматично малюється розв'язка (вид згори).</div></details>
+<details open><summary>Міста на карті</summary>
+<div class="row"><select id="citySel" style="flex:1"></select><button id="cityAdd" title="Створити місто">+</button><button id="cityDel" title="Видалити місто">✕</button></div>
+<div class="row">Назва<input id="cityName" style="width:150px" placeholder="Нове місто"></div>
+<div class="row">Населення<input id="cityPop" type="number" min="0" step="1000" style="width:150px" placeholder="Наприклад, 1000000"></div>
+<label><input type="checkbox" id="cityCap"> Це столиця своєї держави</label>
+<pre id="cityInfo" class="mu" style="white-space:pre-wrap;margin:6px 0"></pre><div class="city-hint">Чим більше населення, тим більше коло. Оберіть інструмент «Місто» й клікніть на карті. Біля дороги чи берега (до ~14 пікселів) місто саме прикріплюється до дороги (пріоритет) або до узбережжя; для точнішого розміщення збільште масштаб. Столиця позначається крапкою в центрі.</div></details>
+<details open><summary>Шари</summary>
+<div class="row">Карта<select id="layer"><option value="phys">Фізична</option><option value="relief">Рельєф (тіні)</option><option value="height">Висоти</option><option value="pol">Політична</option><option value="biome">Біоми</option><option value="temp">Клімат: температура</option><option value="prec">Клімат: опади</option><option value="res">Ресурси</option></select></div>
+<label><input type="checkbox" id="lgrid" checked> Сітка</label> <label><input type="checkbox" id="lmark" checked> Позначки</label> <label><input type="checkbox" id="lcity" checked> Міста</label><br><label><input type="checkbox" id="lborder" checked> Кордони держав</label> <label><input type="checkbox" id="lregion" checked> Межі областей (пунктир)</label> <label><input type="checkbox" id="lrfill"> Заливка областей</label> <label><input type="checkbox" id="ldist" checked> Межі районів (крапки)</label> <label><input type="checkbox" id="ldfill"> Заливка районів</label> <label><input type="checkbox" id="lroad" checked> Дороги</label> <label><input type="checkbox" id="lriver" checked> Річки</label> <label><input type="checkbox" id="lrname" checked> Назви доріг</label>
+<div class="row">Висота рельєфу 3D<input id="exag" type="range" min="0" max="60" value="20"></div><label><input type="checkbox" id="auto"> Автообертання</label></details>
+<details open id="dSync"><summary>Синхронізація · Supabase</summary>
+<div class="row">URL проєкту<input id="sbUrl" type="url" placeholder="https://xxxx.supabase.co" style="width:186px"></div>
+<div class="row">Anon key<input id="sbKey" type="password" placeholder="eyJhbGciOiJIUzI1NiIs..." style="width:186px"></div>
+<div class="row">Код кімнати<input id="sbRoom" value="MYWORLD" style="width:120px"><span id="sbPeers" class="mu"></span></div>
+<div class="row"><button id="sbConn">Приєднатись</button><button id="sbPull">Тягнути від партнера</button></div>
+<div class="row"><span id="sbState">не підключено</span></div>
+<pre id="sbInfo" class="mu" style="white-space:pre-wrap;margin:4px 0">Другий гравець відкриває гру з тим самим URL, ключем і кодом кімнати — правки синхронізуються автоматично (останній запис перемагає).</pre>
+<div class="city-hint">Перший раз: створіть таблицю в Supabase → SQL Editor (кнопка нижче — копіювати й виконати):</div>
+<pre id="sbSql" class="mu"></pre></details>
+<details open><summary>Світ</summary><pre id="winfo" class="mu" style="white-space:pre-wrap;margin:4px 0"></pre></details>
+<details open><summary>Інформація</summary><pre id="info" style="white-space:pre-wrap;margin:4px 0"></pre></details></aside>
+<div id="views"><div class="pane" id="p2"><canvas id="c2"></canvas><div class="ro" id="ro">—</div><div class="ro" id="lg" style="left:auto;right:6px;bottom:auto;top:6px;line-height:1.5"></div></div><div class="pane" id="p3"><canvas id="c3"></canvas><div class="ro" id="ro3">Перетягніть, щоб обертати</div></div></div></div>
+<div id="modal" hidden><div id="mbox"><b id="mt"></b><div id="mb"></div><p><button id="mx">Закрити</button></p></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const $=id=>document.getElementById(id),W=512,H=256,ER=6371,D=Math.PI/180,clamp=(v,a,b)=>v<a?a:v>b?b:v;
+let SEED=1;
+function hash(x,y,z){let h=(Math.imul(x+SEED*131,374761393)+Math.imul(y,668265263)+Math.imul(z,1442695041))|0;h=Math.imul(h^(h>>>13),1274126177);return((h^(h>>>16))>>>0)/4294967295}
+function vn(x,y,z){const xi=Math.floor(x),yi=Math.floor(y),zi=Math.floor(z),fx=x-xi,fy=y-yi,fz=z-zi,u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy),w=fz*fz*(3-2*fz),L=(a,b,t)=>a+(b-a)*t,r=[];
+ for(let k=0;k<2;k++)r.push(L(L(hash(xi,yi,zi+k),hash(xi+1,yi,zi+k),u),L(hash(xi,yi+1,zi+k),hash(xi+1,yi+1,zi+k),u),v));return L(r[0],r[1],w)}
+function fbm(x,y,z,o){let s=0,a=.5,f=1;for(let i=0;i<o;i++){s+=a*vn(x*f,y*f,z*f);a/=2;f*=2}return s/(1-Math.pow(.5,o))/2}
+function nz(i,j,sc,o,f=9){const lo=((i+.5)/W*360-180)*D,la=(90-(j+.5)/H*180)*D;return fbm(Math.cos(la)*Math.cos(lo)*sc+f,Math.sin(la)*sc+f,Math.cos(la)*Math.sin(lo)*sc+f,o||3)}
+const newW=(name)=>({id:'w'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name,p:{radius:1,g:9.81,day:24,sea:0,ocean:'#1f5f9e',land:'#5a9a4a',sky:'#0b1020',atmo:'#6fb4ff',ice:'#f2f8ff',countryMode:'multi',regionMode:'multi'},h:new Float32Array(W*H).fill(-3000),marks:[],cities:[],cityNid:0,roads:[],roadNid:0,rivers:[],rvNid:0,dis:new Uint16Array(W*H),districts:[],dnid:0,own:new Uint8Array(W*H),states:[],nid:0,reg:new Uint16Array(W*H),regions:[],rnid:0});
+let curDis=0,LBr={},LBd={},DG={},curRiv=0,roadDraft=null,LK=new Uint8Array(W*H),lakes=[],wlab=new Int32Array(W*H),wq=new Int32Array(W*H),curSt=0,curReg=0,curCity=0,S=newW('Новий світ'),undo=[],redo=[],tool='land',painting=false,last=null,mpts=[],roadStart=null,needTex=true,need2=true,need3=true,needCities=true,needRoads=true,hover=null,lastDisp=0,stats={};
+function gen(){SEED=1+Math.floor(Math.random()*9999);for(let j=0;j<H;j++)for(let i=0;i<W;i++)S.h[j*W+i]=clamp((nz(i,j,1.7,5)-.5)*16000,-9000,7000);fitSea(30)}
+function fitSea(pct){const bins=new Float64Array(481);let tot=0;for(let j=0;j<H;j++){const w=Math.cos((90-(j+.5)/H*180)*D);for(let i=0;i<W;i++){bins[clamp(Math.floor((S.h[j*W+i]+12000)/50),0,480)]+=w;tot+=w}}
+ let acc=0,b=480;for(;b>0;b--){acc+=bins[b];if(acc/tot*100>=pct)break}S.p.sea=clamp(b*50-12000,-5000,5000);sync();mark()}
+const hex=c=>[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)),mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
+const RAMP=[[-9000,[8,20,80]],[-3000,[30,80,160]],[-1,[110,190,230]],[0,[60,150,70]],[800,[200,190,90]],[2500,[150,100,60]],[5000,[230,230,230]],[9000,[255,255,255]]];
+function ramp(e){for(let k=1;k<RAMP.length;k++)if(e<=RAMP[k][0]){const a=RAMP[k-1],b=RAMP[k];return mix(a[1],b[1],(e-a[0])/(b[0]-a[0]))}return RAMP[RAMP.length-1][1]}
+const off=document.createElement('canvas');off.width=W;off.height=H;const octx=off.getContext('2d'),img=octx.createImageData(W,H);
+function render(){const p=S.p,sea=p.sea,oc=hex(p.ocean),ld=hex(p.land),ic=hex(p.ice),d=img.data,h=S.h,ly=$('layer').value;if(CLS[ly])noiseInit();SC={};RG={};const RF=$('lrfill').checked||tool==='region'||tool==='unregion',DF=$('ldfill').checked||tool==='dist'||tool==='undist';S.states.forEach(s=>SC[s.id]=hex(s.color));S.regions.forEach(r=>RG[r.id]=hex(r.color));DG={};S.districts.forEach(d=>DG[d.id]=hex(d.color));
+ for(let j=0;j<H;j++){const lat=Math.abs(90-(j+.5)/H*180);for(let i=0;i<W;i++){const k=j*W+i,v=h[k];let c;
+  if(ly==='height')c=ramp(v-sea);else if(CLS[ly]&&v>=sea)c=CLS[ly](k,i,j,v);else{
+   if(v<sea){const dp=sea-v;c=mix(mix(oc,[255,255,255],.3*(1-Math.min(1,dp/300))),[0,0,0],Math.min(1,dp/6000)*.55);if(LK[k])c=mix(c,[110,200,210],.4)}
+   else{const e=Math.min(1,(v-sea)/5000);c=mix(ld,[128,116,104],Math.min(1,e*1.6));if(e>.65)c=mix(c,ic,Math.min(1,(e-.65)*4));
+    if(ly==='relief'){const hx=h[j*W+(i+1)%W]-h[j*W+(i+W-1)%W],hy=(j<H-1?h[k+W]:v)-(j>0?h[k-W]:v),sh=1+clamp((-hx-hy)/1500,-.5,.5);c=[c[0]*sh,c[1]*sh,c[2]*sh]}}
+   if(lat>76)c=mix(c,ic,Math.min(1,(lat-76)/8)*(v<sea?.9:1))}
+  const so=S.own[k],sr=S.own[j*W+(i+1)%W],sb=j<H-1?S.own[k+W]:so,rg=S.reg[k],rr=S.reg[j*W+(i+1)%W],rb=j<H-1?S.reg[k+W]:rg;if((ly==='pol'||tool==='border'||tool==='unborder')&&so&&v>=sea)c=mix(c,SC[so]||c,.6);if(RF&&rg&&v>=sea)c=mix(c,RG[rg]||c,.4);const dg=S.dis[k],dr=S.dis[j*W+(i+1)%W],db=j<H-1?S.dis[k+W]:dg;if(DF&&dg&&v>=sea)c=mix(c,DG[dg]||c,.42);if($('ldist').checked&&dg&&(dg!==dr||dg!==db)&&!((i+j)&1))c=mix(c,DG[dg]||[200,230,255],.9);if($('lborder').checked&&so&&(so!==sr||so!==sb))c=mix(c,[5,12,25],.9);if($('lregion').checked&&rg&&(rg!==rr||rg!==rb)&&((i+j)&3)<2)c=mix(c,RG[rg]||[255,224,119],.86);const o=k*4;d[o]=c[0];d[o+1]=c[1];d[o+2]=c[2];d[o+3]=255}}
+ octx.putImageData(img,0,0)}
+const BIO=[['Крижана пустеля','#e8f0f5'],['Тундра','#a9b8a0'],['Тайга','#3f6b52'],['Степ','#c8c070'],['Пустеля','#e3c98a'],['Листяний ліс','#4f9a4f'],['Савана','#c9a94a'],['Тропічний ліс','#1f7a3a'],['Гірські льоди','#ffffff']],RES=[['Залізо','#a0522d'],['Вугілля','#222222'],['Нафта','#8e44ad'],['Золото','#ffd700'],['Родюча земля','#7ed957']];
+let NP=null,NR=null,SC={},RG={};
+function noiseInit(){if(NP)return;NP=new Float32Array(W*H);NR=[0,1,2,3,4].map(()=>new Float32Array(W*H));for(let j=0;j<H;j++)for(let i=0;i<W;i++){const k=j*W+i;NP[k]=nz(i,j,3,3);for(let r=0;r<5;r++)NR[r][k]=nz(i,j,7+r,3,40+r*13)}}
+function clim(k,j,v){const lat=Math.abs(90-(j+.5)/H*180),e=Math.max(0,v-S.p.sea),T=30-.0075*lat*lat-6.5*e/1000,P=Math.max(40,(800+800*Math.cos(6*lat*D))*(1-lat/120))*(.5+NP[k]*2)*(1-Math.min(.5,e/8000));return[T,P,e]}
+function biome(T,P,e){if(e>4500)return 8;if(T<-12)return 0;if(T<0)return 1;if(T<7)return P<300?3:2;if(T<18)return P<250?4:P<600?3:5;return P<250?4:P<1500?6:7}
+function resAt(k,j,v){const[T,P,e]=clim(k,j,v),ok=[1,e<1500,e<500,e>800,T>8&&T<26&&P>600&&P<1800&&e<800];let b=-1,bv=0;for(let r=0;r<5;r++){const th=r===4?.56:.64,n=NR[r][k]*2;if(ok[r]&&n>th&&n-th>bv){bv=n-th;b=r}}return b}
+const BC=BIO.map(x=>hex(x[1])),RC=RES.map(x=>hex(x[1]));
+const CLS={temp:(k,i,j,v)=>{const t=clamp((clim(k,j,v)[0]+30)/60,0,1);return t<.5?mix([40,80,220],[250,230,90],t*2):mix([250,230,90],[230,50,40],(t-.5)*2)},prec:(k,i,j,v)=>mix([240,230,200],[20,70,200],clamp(clim(k,j,v)[1]/2500,0,1)),biome:(k,i,j,v)=>{const[T,P,e]=clim(k,j,v);return BC[biome(T,P,e)]},res:(k,i,j,v)=>{const r=resAt(k,j,v);return r<0?[75,75,75]:RC[r]}};
+const idxAt=(lo,la)=>{const c=cell(lo,la);return clamp(Math.floor(c.cy),0,H-1)*W+clamp(Math.floor(c.cx),0,W-1)};
+function calcStats(){if(S.p.countryMode==='single'&&S.states[0]){const sid=S.states[0].id;for(let k=0;k<W*H;k++)S.own[k]=S.h[k]>=S.p.sea?sid:0}const ids={},rids={};S.states.forEach(s=>ids[s.id]=1);S.regions.forEach(r=>rids[r.id]=r);S.districts=S.districts.filter(d=>rids[d.regionId]);const dids={};S.districts.forEach(d=>dids[d.id]=d);for(let k=0;k<W*H;k++){if(S.own[k]&&(S.h[k]<S.p.sea||!ids[S.own[k]]))S.own[k]=0;const r=rids[S.reg[k]];if(S.reg[k]&&(!r||r.stateId!==S.own[k]))S.reg[k]=0;const dd=dids[S.dis[k]];if(S.dis[k]&&(!dd||dd.regionId!==S.reg[k]))S.dis[k]=0}capSync();S.states.forEach(s=>{if(s.cap&&S.own[idxAt(s.cap.lon,s.cap.lat)]!==s.id)s.cap=null});let tot=0,land=0,mx=-1e9,mn=1e9;const sea=S.p.sea,sa={},ra={},da={};LBr={};LBd={};const acc=(m,id,i,j)=>{const c=m[id]||(m[id]={n:0,dx:0,sy:0,i0:i});c.n++;c.dx+=((i-c.i0+W*1.5)%W)-W/2;c.sy+=j};for(let j=0;j<H;j++){const w=Math.cos((90-(j+.5)/H*180)*D);for(let i=0;i<W;i++){const v=S.h[j*W+i];tot+=w;if(v>=sea)land+=w;const so=S.own[j*W+i];if(so)sa[so]=(sa[so]||0)+w;const rr0=S.reg[j*W+i],dd0=S.dis[j*W+i];if(rr0){ra[rr0]=(ra[rr0]||0)+w;acc(LBr,rr0,i,j)}if(dd0){da[dd0]=(da[dd0]||0)+w;acc(LBd,dd0,i,j)}if(v>mx)mx=v;if(v<mn)mn=v}}
+ const R=ER*S.p.radius,A=4*Math.PI*R*R;stats={sa,ra,da,tot,A,land:land/tot*100,la:land/tot*A/1e6,oa:(1-land/tot)*A/1e6,mx:mx-S.p.sea,mn:mn-S.p.sea};if(document.activeElement!==$('pmax'))$('pmax').value=Math.round(stats.mx);if(document.activeElement!==$('pmin'))$('pmin').value=Math.round(stats.mn);
+ waterBodies();$('info').textContent=`Суша: ${stats.land.toFixed(1)}% (${stats.la.toFixed(1)} млн км²)\nОкеан: ${(100-stats.land).toFixed(1)}% (${stats.oa.toFixed(1)} млн км²)\nМакс. висота: ${Math.round(stats.mx)} м\nМін. глибина: ${Math.round(stats.mn)} м\nПозначок: ${S.marks.length}\nМіст: ${S.cities.length}\nОбластей: ${S.regions.length}\nРайонів: ${S.districts.length}\nДоріг: ${S.roads.length}\nРік: ${S.rivers.length}\nОзер: ${lakes.length}`;recalcRivers();stUI();cityUI()}
+function sync(){const p=S.p,R=ER*p.radius;$('pr').value=+p.radius.toFixed(3);$('pd').value=Math.round(2*R);$('pa').value=+(4*Math.PI*R*R/1e6).toFixed(1);$('pg').value=p.g;$('pday').value=p.day;$('psea').value=p.sea;$('seav').textContent=Math.round(p.sea)+' м';
+ $('coc').value=p.ocean;$('cld').value=p.land;$('csk').value=p.sky;$('cat').value=p.atmo;$('cic').value=p.ice;$('wname').value=S.name;$('hist').textContent=`Історія: ${undo.length} / повтор: ${redo.length}`;$('bUndo').disabled=!undo.length;$('bRedo').disabled=!redo.length;calcStats()}
+function mark(){needTex=true;saveSoon()}
+function setR(r){S.p.radius=clamp(r||1,.05,50);S.p.g=+(9.81*S.p.radius).toFixed(2);sync();saveSoon()}
+$('pr').onchange=e=>setR(+e.target.value);$('pd').onchange=e=>setR(+e.target.value/2/ER);$('pa').onchange=e=>setR(Math.sqrt(+e.target.value*1e6/4/Math.PI)/ER);
+$('pg').onchange=e=>{S.p.g=+e.target.value;saveSoon()};$('pday').onchange=e=>{S.p.day=Math.max(.1,+e.target.value);saveSoon()};
+$('psea').oninput=e=>{S.p.sea=+e.target.value;$('seav').textContent=S.p.sea+' м';calcStats();mark()};$('bFit').onclick=()=>fitSea(clamp(+$('pland').value,1,99));
+$('bFitH').onclick=()=>{const tMax=clamp(Math.round(+$('pmax').value||stats.mx||0),1,9000),tMin=clamp(Math.round(+$('pmin').value||stats.mn||0),-11000,-1);
+ if(tMin>=tMax){say('Найнижча точка має бути нижчою за найвищу');return}
+ pushUndo();const sea=S.p.sea,h=S.h;let mx=-1e9,mn=1e9;
+ for(let k=0;k<W*H;k++){const v=h[k];if(v>mx)mx=v;if(v<mn)mn=v}
+ const fUp=(mx>sea)?tMax/(mx-sea):1,fDn=(mn<sea)?(-tMin)/(sea-mn):1,lo=Math.min(-11000,sea+tMin-1),hi=Math.max(9000,sea+tMax+1);
+ for(let k=0;k<W*H;k++){if(h[k]>sea)h[k]=sea+(h[k]-sea)*fUp;else if(h[k]<sea)h[k]=sea-(sea-h[k])*fDn;h[k]=clamp(h[k],lo,hi)}
+ sync();mark();need3=true;say(`Рельєф виставлено: найвища ${tMax} м, найнижча ${tMin} м`)};
+[['coc','ocean'],['cld','land'],['csk','sky'],['cat','atmo'],['cic','ice']].forEach(([id,k])=>$(id).oninput=e=>{S.p[k]=e.target.value;mark()});
+$('layer').onchange=()=>{needTex=true;legend()};$('lgrid').onchange=$('lmark').onchange=()=>need2=true;$('lcity').onchange=()=>{need2=true;needCities=true};$('lborder').onchange=$('lregion').onchange=$('lrfill').onchange=$('ldist').onchange=$('ldfill').onchange=()=>{needTex=true};$('lroad').onchange=$('lriver').onchange=$('lrname').onchange=()=>{need2=true;needRoads=true};$('exag').oninput=()=>need3=true;
+$('wname').oninput=e=>{S.name=e.target.value;saveSoon()};
+const TOOLS=[['land','Материк'],['arch','Архіпелаг'],['lake','Озеро'],['mount','Гори'],['range','Хребет'],['rsrc','Витік річки'],['plain','Рівнина'],['up','Підняти'],['down','Опустити'],['smooth','Згладити'],['coast','Берег'],['ocean','Океан'],['border','Кордон +'],['unborder','Кордон −'],['region','Область +'],['unregion','Область −'],['dist','Район +'],['undist','Район −'],['city','Місто'],['road','Дорога'],['mark','Позначка'],['ruler','Лінійка'],['pan','Рука']];
+TOOLS.forEach(([id,n])=>{const b=document.createElement('button');b.textContent=n;b.dataset.t=id;b.onclick=()=>{tool=id;roadDraft=null;needTex=true;need2=true;$('roadDrawRow').style.display=id==='road'?'':'none';if(id==='road'){$('roadName').value='';$('roadName').placeholder='авто: Місто А — Місто Б'}const TH={city:'Клікніть на карті, щоб розмістити місто',road:'Клікайте точки дороги на суші; двічі клікніть — завершити',rsrc:'Клікніть витік річки на суші'};if(TH[id])$('stat').textContent=TH[id];document.querySelectorAll('#tools button').forEach(x=>x.classList.toggle('on',x.dataset.t===id))};$('tools').appendChild(b)});$('tools').firstChild.classList.add('on');
+function stamp(cx,cy,r,fn){const lat=90-(cy+.5)/H*180,k=Math.max(.15,Math.cos(lat*D)),rx=Math.ceil(r/k),ry=Math.ceil(r),ci=Math.floor(cx),cj=Math.floor(cy);
+ for(let dj=-ry;dj<=ry;dj++){const j=cj+dj;if(j<0||j>=H)continue;for(let di=-rx;di<=rx;di++){const dd=Math.hypot(di*k,dj);if(dd>r)continue;const w=1-dd/r,f=w*w*(3-2*w),i=((ci+di)%W+W)%W;fn(j*W+i,f,i,j)}}}
+function dab(cx,cy){let r=+$('bsize').value;const s=+$('bstr').value/100,sea=S.p.sea,h=S.h,t=tool;
+ if(t==='arch'){for(let n=0;n<10;n++){const a=Math.random()*6.283,d=Math.random()*r*2.2,rr=Math.max(1.5,r*(.12+Math.random()*.25));stamp(cx+Math.cos(a)*d,cy+Math.sin(a)*d*.5,rr,(k,f,i,j)=>{const tg=sea+150+nz(i,j,6)*500;if(h[k]<tg)h[k]+=(tg-h[k])*f*.7})}return}
+ if(t==='isle')r=Math.min(r,10);if(t==='range')r*=.45;if(t==='river')r=Math.max(1,r*.12);if(t==='lake')r*=.6;
+ stamp(cx,cy,r,(k,f,i,j)=>{let v=h[k];switch(t){
+  case'land':case'isle':{const tg=sea+200+nz(i,j,6)*600;if(v<tg)v+=(tg-v)*Math.min(1,f*(.3+s*.8));break}
+  case'mount':case'range':if(v>sea-200)v+=f*s*220*(.4+(1-Math.abs(2*nz(i,j,10,4)-1))*1.2);break;
+  case'river':if(v>sea-20)v+=(sea-20-v)*f*.8;break;
+  case'lake':if(v>sea-40)v+=(sea-40-v)*f*.8;break;
+  case'plain':if(v>sea-100)v+=(sea+150-v)*f*s*.6;break;
+  case'basin':case'down':v-=f*s*(t==='basin'?300:250);break;case'up':v+=f*s*250;break;
+  case'ocean':if(v>sea-3000)v+=(sea-3000-v)*f*s*.5;break;
+  case'smooth':{const a=(h[k-(i>0?1:1-W)]+h[k+(i<W-1?1:1-W)]+(j>0?h[k-W]:v)+(j<H-1?h[k+W]:v))/4;v+=(a-v)*f*(.3+s*.7);break}
+  case'coast':if(Math.abs(v-sea)<700)v+=(nz(i,j,28,2)-.5)*f*s*500;break;case'border':if(v>=sea&&f>.2&&curSt){S.own[k]=curSt;S.reg[k]=0}break;case'unborder':if(f>.2){S.own[k]=0;S.reg[k]=0}break;case'region':if(v>=sea&&f>.2&&curReg&&S.own[k]===regionOf(curReg)?.stateId)S.reg[k]=curReg;break;case'unregion':if(f>.2)S.reg[k]=0;break;case'dist':if(v>=sea&&f>.2&&curDis&&S.reg[k]===districtOf(curDis)?.regionId)S.dis[k]=curDis;break;case'undist':if(f>.2)S.dis[k]=0;break}
+  h[k]=clamp(v,-11000,9000)})}
+function pushUndo(){undo.push({h:S.h.slice(),o:S.own.slice(),r:S.reg.slice(),d:S.dis.slice()});if(undo.length>40)undo.shift();redo=[];sync()}
+function doUndo(){if(!undo.length)return;redo.push({h:S.h.slice(),o:S.own.slice(),r:S.reg.slice(),d:S.dis.slice()});const u=undo.pop();S.h.set(u.h);S.own.set(u.o);S.reg.set(u.r);if(u.d)S.dis.set(u.d);sync();mark();need3=true}
+function doRedo(){if(!redo.length)return;undo.push({h:S.h.slice(),o:S.own.slice(),r:S.reg.slice(),d:S.dis.slice()});const u=redo.pop();S.h.set(u.h);S.own.set(u.o);S.reg.set(u.r);if(u.d)S.dis.set(u.d);sync();mark();need3=true}
+$('bUndo').onclick=doUndo;$('bRedo').onclick=doRedo;$('bGen').onclick=()=>{pushUndo();gen();need3=true};
+$('bClrM').onclick=()=>{S.marks=[];sync();need2=true;saveSoon()};
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'&&e.target.type!=='range')return;if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();e.shiftKey?doRedo():doUndo()}if((e.ctrlKey||e.metaKey)&&e.key==='y'){e.preventDefault();doRedo()}});
+const c2=$('c2'),V={z:1,x:0,y:0};let drag=null;
+function geo(){const w=c2.width,hh=c2.height,b=Math.min(w,2*hh),mw=b*V.z,mh=mw/2;V.x=mw<=w?(w-mw)/2:clamp(V.x,w-mw,0);V.y=mh<=hh?(hh-mh)/2:clamp(V.y,hh-mh,0);return{mw,mh}}
+function s2g(x,y){const{mw,mh}=geo();return{lon:(x-V.x)/mw*360-180,lat:90-(y-V.y)/mh*180}}
+const cell=(lon,lat)=>({cx:(lon+180)/360*W,cy:(90-lat)/180*H}),at=(lon,lat)=>{const c=cell(lon,lat),i=clamp(Math.floor(c.cx),0,W-1),j=clamp(Math.floor(c.cy),0,H-1);return S.h[j*W+i]};
+function dist(a,b){const dl=(b.lon-a.lon)*D,p1=a.lat*D,p2=b.lat*D,x=Math.sin((p2-p1)/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;return 2*Math.asin(Math.min(1,Math.sqrt(x)))*ER*S.p.radius}
+function readout(g){if(!g||Math.abs(g.lat)>90||Math.abs(g.lon)>180){$('ro').textContent='—';return}const h=at(g.lon,g.lat),e=h-S.p.sea;
+ let t=`${g.lat.toFixed(2)}°, ${g.lon.toFixed(2)}° | ${e>=0?'висота':'глибина'} ${Math.round(Math.abs(e))} м`;if(mpts.length===2)t+=` | відстань ${Math.round(dist(mpts[0],mpts[1]))} км`;$('ro').textContent=t}
+const cityRadius=pop=>clamp(2.5+1.1*Math.log10(Math.max(1000,+pop||0)/1000),3,9);
+const formatPop=pop=>new Intl.NumberFormat('uk-UA').format(Math.max(0,+pop||0));
+function coastSnap(lon,lat,rc){const c=cell(lon,lat),ci=Math.floor(c.cx),cj=Math.floor(c.cy),h=S.h,sea=S.p.sea;let best=null,bd=rc*rc+1;
+ for(let dj=-rc;dj<=rc;dj++){const j=cj+dj;if(j<1||j>=H-1)continue;for(let di=-rc;di<=rc;di++){const d=di*di+dj*dj;if(d>=bd)continue;const i=((ci+di)%W+W)%W;if(h[j*W+i]<sea)continue;
+  let wet=false;for(let a=-1;a<=1&&!wet;a++)for(let b=-1;b<=1;b++)if(h[(j+a)*W+(i+b+W)%W]<sea){wet=true;break}
+  if(wet){bd=d;best={lon:(i+.5)/W*360-180,lat:90-(j+.5)/H*180}}}}return best}
+function roadSnap(g){const{mw,mh}=geo();let best=null,bd=14;const px=(lon,lat)=>[(((lon-g.lon+540)%360)-180)/360*mw,(lat-g.lat)/180*mh];
+ S.roads.forEach(r=>{const q=roadPts(r.pts,r.curve,10);for(let i=1;i<q.length;i++){const a=px(q[i-1].lon,q[i-1].lat),b=px(q[i].lon,q[i].lat),dx=b[0]-a[0],dy=b[1]-a[1];if(Math.abs(dx)>mw/2)continue;const L=dx*dx+dy*dy,t=L?clamp(-(a[0]*dx+a[1]*dy)/L,0,1):0,d=Math.hypot(a[0]+dx*t,a[1]+dy*t);
+  if(d<bd){bd=d;best={lon:wrapLon(q[i-1].lon+((q[i].lon-q[i-1].lon+540)%360-180)*t),lat:q[i-1].lat+(q[i].lat-q[i-1].lat)*t,road:r.id}}}});return best}
+function cityTarget(g){if(Math.abs(g.lat)>90||Math.abs(g.lon)>180)return null;const rs=roadSnap(g);if(rs&&at(rs.lon,rs.lat)>=S.p.sea)return{lon:rs.lon,lat:rs.lat,snapped:true,road:rs.road};const{mw}=geo(),sn=coastSnap(g.lon,g.lat,Math.max(1,Math.round(14*W/mw)));if(sn)return{lon:sn.lon,lat:sn.lat,snapped:true};return at(g.lon,g.lat)<S.p.sea?null:{lon:g.lon,lat:g.lat,snapped:false}}
+const cityAt=q=>S.cities.find(c=>c.lon!=null&&sameP(c,q)),cn=q=>{const c=q&&cityAt(q);return c?c.name:'не прикріплено до міста'};
+const rname=r=>{if(!r.auto)return r.name||'';const A=cityAt(r.pts[0]),B=cityAt(r.pts[r.pts.length-1]);return A&&B&&A!==B?A.name+' — '+B.name:'Дорога '+r.id};
+function assignCap(c){if(c.lon==null)return;const st=stOf(S.own[idxAt(c.lon,c.lat)]);if(!st)return;S.cities.forEach(x=>{if(x!==c&&x.cap&&x.lon!=null&&S.own[idxAt(x.lon,x.lat)]===st.id)x.cap=false});st.capCity=c.id}
+function capSync(){S.states.forEach(s=>{const c=s.capCity&&cityOf(s.capCity);if(c&&c.cap&&c.lon!=null&&S.own[idxAt(c.lon,c.lat)]===s.id)s.cap={lon:c.lon,lat:c.lat};else if(s.capCity){s.capCity=0;s.cap=null}})}
+const wrapLon=x=>((x%360+540)%360)-180,cr=(a,b,c,d,f)=>.5*(2*b+(-a+c)*f+(2*a-5*b+4*c-d)*f*f+(-a+3*b-3*c+d)*f*f*f);
+function roadPts(pts,curve,n=10){if(pts.length<2)return pts.slice();const u=[pts[0].lon];for(let i=1;i<pts.length;i++)u.push(u[i-1]+((pts[i].lon-pts[i-1].lon+540)%360-180));
+ const q=pts.map((p,i)=>({x:u[i],y:p.lat})),out=[];for(let i=0;i<q.length-1;i++){const a=q[Math.max(0,i-1)],b=q[i],c=q[i+1],d=q[Math.min(q.length-1,i+2)];
+  for(let t=0;t<n;t++){const f=t/n;out.push(curve?{lon:wrapLon(cr(a.x,b.x,c.x,d.x,f)),lat:clamp(cr(a.y,b.y,c.y,d.y,f),-89.9,89.9)}:{lon:wrapLon(b.x+(c.x-b.x)*f),lat:b.y+(c.y-b.y)*f})}}
+ const e=q[q.length-1];out.push({lon:wrapLon(e.x),lat:e.y});return out}
+const roadWet=pts=>pts.some(z=>at(z.lon,z.lat)<S.p.sea),say=t=>$('stat').textContent=t;
+function snapPt(g,col){const{mw,mh}=geo();let best=null,bd=1e9;
+ S.cities.forEach(c=>{if(c.lon==null)return;const dx=(((c.lon-g.lon+540)%360)-180)/360*mw,dy=(c.lat-g.lat)/180*mh,d=Math.hypot(dx,dy);if(d<cityRadius(c.pop)+8&&d<bd){bd=d;best={lon:c.lon,lat:c.lat,city:c.id}}});if(best)return best;
+ const tol=12/mw*360;bd=tol;S.roads.forEach(r=>{if((r.color||'').toLowerCase()!==col.toLowerCase())return;[r.pts[0],r.pts[r.pts.length-1]].forEach(e=>{const d=Math.hypot(Math.abs(((e.lon-g.lon+540)%360)-180),e.lat-g.lat);if(d<bd){bd=d;best={lon:e.lon,lat:e.lat}}})});return best}
+const sameP=(a,b)=>Math.abs(a.lon-b.lon)<1e-6&&Math.abs(a.lat-b.lat)<1e-6;
+function roadLinks(r){let n=0;S.roads.forEach(o=>{if(o===r||(o.color||'').toLowerCase()!==(r.color||'').toLowerCase())return;for(const a of[r.pts[0],r.pts[r.pts.length-1]])for(const b of[o.pts[0],o.pts[o.pts.length-1]])if(sameP(a,b))n++});return n}
+function trace(g,P,pts,mw){g.beginPath();pts.forEach((z,i)=>{const[x,y]=P(z.lon,z.lat),pr=i&&P(pts[i-1].lon,pts[i-1].lat);if(!i||Math.abs(x-pr[0])>mw*.5)g.moveTo(x,y);else g.lineTo(x,y)})}
+function statePop(id){let p=0;S.cities.forEach(c=>{if(c.lon!=null&&c.lat!=null&&S.own[idxAt(c.lon,c.lat)]===id)p+=Math.max(0,+c.pop||0)});return p}
+function worldUI(){const el=$('winfo');if(!el)return;let tot=0,placed=0;S.cities.forEach(c=>{tot+=Math.max(0,+c.pop||0);if(c.lon!=null&&c.lat!=null)placed++});
+ const rows=S.states.map(s=>({s,p:statePop(s.id),a:((stats.sa&&stats.sa[s.id])||0)})).sort((x,y)=>y.p-x.p);
+ let t=`Населення світу: ${formatPop(tot)}\nКраїн: ${S.states.length} · Міст: ${S.cities.length} (розміщено: ${placed})`;
+ if(rows.length&&stats.tot)t+='\n\nКраїна — населення (частка), площа:'+rows.map(r=>`\n• ${r.s.name} — ${formatPop(r.p)} (${tot?(r.p/tot*100).toFixed(1):'0.0'}%) · ${(r.a/stats.tot*stats.A/1e6).toFixed(2)} млн км²`).join('');
+ el.textContent=t}
+let xGeo=null,xGeoKey='';
+function crossings(){const key=S.roads.length+':'+S.roadNid+':'+S.roads.map(r=>r.id+'.'+r.pts.length+'.'+(r.curve?1:0)).join(',');if(key===xGeoKey&&xGeo)return xGeo;
+ xGeoKey=key;const out=[],q=S.roads.map(r=>roadPts(r.pts,r.curve,8));
+ for(let a=0;a<q.length;a++)for(let b=a+1;b<q.length;b++){const A=q[a],B=q[b];
+  for(let i=1;i<A.length;i++){const x1=A[i-1].lon,y1=A[i-1].lat,x2=A[i].lon,y2=A[i].lat;if(Math.abs(x2-x1)>180)continue;
+   for(let j=1;j<B.length;j++){const x3=B[j-1].lon,y3=B[j-1].lat,x4=B[j].lon,y4=B[j].lat;if(Math.abs(x4-x3)>180)continue;
+    const d=(x2-x1)*(y4-y3)-(y2-y1)*(x4-x3);if(!d||Math.abs(d)<1e-12)continue;
+    const t=((x3-x1)*(y4-y3)-(y3-y1)*(x4-x3))/d,u=((x3-x1)*(y2-y1)-(y3-y1)*(x2-x1))/d;
+    if(t<0||t>1||u<0||u>1)continue;
+    out.push({lon:x1+t*(x2-x1),lat:y1+t*(y2-y1),dl1:x2-x1,dt1:y2-y1,dl2:x4-x3,dt2:y4-y3,c1:S.roads[a].color||'#f5bf52',c2:S.roads[b].color||'#f5bf52',w1:S.roads[a].type==='main'?4:2.4,w2:S.roads[b].type==='main'?4:2.4})}}}
+ xGeo=out;return out}
+function drawXings2d(g,P,mw){if(!S.roads.length)return;const xs=crossings();if(!xs.length)return;const mh=mw/2,drawn=[],ends=[];
+ S.roads.forEach(r=>{ends.push(P(r.pts[0].lon,r.pts[0].lat),P(r.pts[r.pts.length-1].lon,r.pts[r.pts.length-1].lat))});
+ g.save();g.lineCap='round';
+ for(const o of xs){const[x,y]=P(o.lon,o.lat);if(x<-20||y<-20||x>c2.width+20||y>c2.height+20)continue;
+  if(drawn.some(z=>Math.hypot(z[0]-x,z[1]-y)<18))continue;
+  if(ends.some(e=>Math.hypot(e[0]-x,e[1]-y)<8))continue;
+  drawn.push([x,y]);const R=9,rRing=4.6;
+  g.fillStyle='#05080f';g.beginPath();g.arc(x,y,R,0,7);g.fill();
+  [[o.dl1,o.dt1,o.c1,o.w1],[o.dl2,o.dt2,o.c2,o.w2]].forEach(([dl,dt,col,w])=>{
+   const a=Math.atan2(-dt/180*mh,dl/360*mw),ux=Math.cos(a),uy=Math.sin(a);
+   [1,-1].forEach(s2=>{g.strokeStyle='#09101c';g.lineWidth=w+2.6;g.beginPath();g.moveTo(x+ux*R*s2,y+uy*R*s2);g.lineTo(x+ux*(rRing+1)*s2,y+uy*(rRing+1)*s2);g.stroke();
+    g.strokeStyle=col;g.lineWidth=w;g.beginPath();g.moveTo(x+ux*R*s2,y+uy*R*s2);g.lineTo(x+ux*(rRing+1)*s2,y+uy*(rRing+1)*s2);g.stroke()})});
+  g.strokeStyle='#05080f';g.lineWidth=5.6;g.beginPath();g.arc(x,y,rRing,0,7);g.stroke();
+  g.strokeStyle='#dfe8f7';g.lineWidth=2.4;g.beginPath();g.arc(x,y,rRing,0,7);g.stroke();
+  g.fillStyle='#7fb5ff';g.beginPath();g.arc(x,y,1.7,0,7);g.fill()}
+ g.restore()}
+function drawRoads2d(g,P,mw){if(!$('lroad').checked)return;const ends={};g.save();g.lineCap=g.lineJoin='round';
+ S.roads.forEach(r=>{const pts=roadPts(r.pts,r.curve),w=r.type==='main'?4:2.4;trace(g,P,pts,mw);g.strokeStyle='#09101c';g.lineWidth=w+2.6;g.stroke();trace(g,P,pts,mw);g.strokeStyle=r.color||'#f5bf52';g.lineWidth=w;g.stroke();
+  [r.pts[0],r.pts[r.pts.length-1]].forEach(e=>{const key=(r.color||'')+e.lon.toFixed(4)+e.lat.toFixed(4);(ends[key]=ends[key]||{e,c:r.color,n:0}).n++})});
+ Object.values(ends).forEach(o=>{if(o.n<2)return;const[x,y]=P(o.e.lon,o.e.lat);g.fillStyle=o.c;g.strokeStyle='#09101c';g.lineWidth=2;g.beginPath();g.arc(x,y,4.5,0,7);g.fill();g.stroke()});drawXings2d(g,P,mw);drawRoadNames(g,P,mw);g.restore()}
+function drawRoadNames(g,P,mw){if(!$('lrname').checked)return;const placed=[];g.save();g.textAlign='center';g.textBaseline='middle';g.lineJoin='round';
+ S.roads.forEach(r=>{const nm=rname(r);if(!nm)return;const q=roadPts(r.pts,r.curve).map(z=>P(z.lon,z.lat)),n=q.length;if(n<2)return;const cum=[0];
+  for(let i=1;i<n;i++){const d=Math.hypot(q[i][0]-q[i-1][0],q[i][1]-q[i-1][1]);cum.push(cum[i-1]+(d>mw*.5?0:d))}
+  g.font=(r.type==='main'?'bold 12':'600 11')+'px system-ui,sans-serif';const L=cum[n-1],tw=g.measureText(nm).width;const cnt=Math.max(1,Math.floor(L/(tw+300)));
+  for(let c=0;c<cnt;c++){const t=L*(c+.5)/cnt;let i=1;while(i<n-1&&cum[i]<t)i++;const a=q[Math.max(0,i-2)],b=q[Math.min(n-1,i+1)];if(Math.abs(b[0]-a[0])>mw*.5)continue;
+   const f=(t-cum[i-1])/((cum[i]-cum[i-1])||1),x=q[i-1][0]+(q[i][0]-q[i-1][0])*f,y=q[i-1][1]+(q[i][1]-q[i-1][1])*f;if(x<-60||y<-30||x>g.canvas.width+60||y>g.canvas.height+30)continue;
+   if(placed.some(z=>Math.hypot(z[0]-x,z[1]-y)<tw*.6+30))continue;placed.push([x,y]);let an=Math.atan2(b[1]-a[1],b[0]-a[0]);if(an>Math.PI/2||an<-Math.PI/2)an+=Math.PI;
+   g.save();g.translate(x,y);g.rotate(an);g.lineWidth=3.2;g.strokeStyle='#07101d';g.strokeText(nm,0,-9);g.fillStyle='#fff';g.fillText(nm,0,-9);g.restore()}});g.restore()}
+function drawGhost(g,P,mw){if(!hover)return;const gp=s2g(hover.x,hover.y);g.save();
+ if(tool==='city'){const c=cityOf(curCity),t=cityTarget(gp),[x,y]=t?P(t.lon,t.lat):[hover.x,hover.y];g.setLineDash([4,3]);g.strokeStyle=!t?'#ff4d4d':t.snapped?'#6dff8a':'#fff';g.lineWidth=2;g.beginPath();g.arc(x,y,cityRadius(c?c.pop:100000)+2,0,7);g.stroke()}
+ else if(tool==='road'){const col=$('roadCol').value,sn=snapPt(gp,col),q=sn||gp,[hx,hy]=P(q.lon,q.lat),bad=at(q.lon,q.lat)<S.p.sea;
+  if(roadDraft&&roadDraft.pts.length){const pts=roadPts(roadDraft.pts.concat([{lon:q.lon,lat:q.lat}]),$('roadCurve').checked);g.setLineDash([6,4]);g.lineWidth=3;g.strokeStyle=col;trace(g,P,pts,mw);g.stroke();g.setLineDash([]);
+   roadDraft.pts.forEach(z=>{const[x,y]=P(z.lon,z.lat);g.fillStyle=col;g.strokeStyle='#fff';g.lineWidth=1.5;g.beginPath();g.arc(x,y,4,0,7);g.fill();g.stroke()})}
+  g.setLineDash([]);g.strokeStyle=bad?'#ff4d4d':sn?'#6dff8a':'#fff';g.lineWidth=2;g.beginPath();g.arc(hx,hy,sn?(sn.city?10:8):5,0,7);g.stroke()}g.restore()}
+function drawCities2d(g,P){if(!$('lcity').checked)return;S.cities.forEach(c=>{if(c.lon==null||c.lat==null)return;const[x,y]=P(c.lon,c.lat),r=cityRadius(c.pop);g.save();g.shadowColor='#000';g.shadowBlur=7;g.fillStyle=c.cap?'#ffc857':'#72b6ff';g.globalAlpha=.88;g.beginPath();g.arc(x,y,r,0,7);g.fill();g.globalAlpha=1;g.strokeStyle=at(c.lon,c.lat)<S.p.sea?'#ff4d4d':'#ffffffcc';g.lineWidth=1.4;g.beginPath();g.arc(x,y,r,0,7);g.stroke();if(c.cap){g.fillStyle='#17243a';g.beginPath();g.arc(x,y,Math.max(2.6,r*.2),0,7);g.fill();g.strokeStyle='#fff';g.lineWidth=1;g.stroke()}g.font='600 12px system-ui,sans-serif';g.lineWidth=3;g.strokeStyle='#07101d';g.strokeText(c.name,x+r+5,y+4);g.fillStyle='#fff';g.fillText(c.name,x+r+5,y+4);g.restore()})}
+function draw2d(){const g=c2.getContext('2d'),w=c2.width,hh=c2.height,{mw,mh}=geo();g.fillStyle='#05080c';g.fillRect(0,0,w,hh);g.imageSmoothingEnabled=V.z<3;g.drawImage(off,V.x,V.y,mw,mh);
+ if($('lgrid').checked){const st=V.z<2?30:V.z<4?15:V.z<10?5:1;g.strokeStyle='rgba(255,255,255,.25)';g.fillStyle='rgba(255,255,255,.75)';g.font='10px sans-serif';g.beginPath();
+  for(let lo=-180;lo<=180;lo+=st){const x=V.x+(lo+180)/360*mw;g.moveTo(x,V.y);g.lineTo(x,V.y+mh);if(x>0&&x<w)g.fillText(lo+'°',x+2,Math.max(10,V.y+10))}
+  for(let la=-90;la<=90;la+=st){const y=V.y+(90-la)/180*mh;g.moveTo(V.x,y);g.lineTo(V.x+mw,y);if(y>0&&y<hh)g.fillText(la+'°',Math.max(2,V.x+2),y-2)}g.stroke()}
+ const P=(lo,la)=>[V.x+(lo+180)/360*mw,V.y+(90-la)/180*mh];
+ if($('lmark').checked)S.marks.forEach(m=>{const[x,y]=P(m.lon,m.lat);g.fillStyle='#ff5a5a';g.beginPath();g.arc(x,y,4,0,7);g.fill();g.fillStyle='#fff';g.strokeStyle='#000';g.lineWidth=3;g.font='12px sans-serif';g.strokeText(m.text,x+7,y+4);g.fillText(m.text,x+7,y+4)});
+ drawRivers2d(g,mw,mh);drawRoads2d(g,P,mw);drawCities2d(g,P);if($('layer').value==='pol')drawAdminLabels(g,mw,mh);
+ if($('layer').value==='pol')S.states.forEach(s=>{if(!s.cap)return;const[x,y]=P(s.cap.lon,s.cap.lat);g.strokeStyle='#000';g.lineWidth=2;g.beginPath();g.arc(x,y,5,0,7);g.stroke();g.fillStyle=s.color;g.fill();g.font='bold 12px sans-serif';g.lineWidth=3;g.strokeText(s.name,x+8,y-6);g.fillStyle='#fff';g.fillText(s.name,x+8,y-6)});
+ mpts.forEach((m,i)=>{const[x,y]=P(m.lon,m.lat);g.fillStyle='#ffd34a';g.beginPath();g.arc(x,y,4,0,7);g.fill();if(i){const[x0,y0]=P(mpts[0].lon,mpts[0].lat);g.strokeStyle='#ffd34a';g.lineWidth=2;g.beginPath();g.moveTo(x0,y0);g.lineTo(x,y);g.stroke()}});
+ drawGhost(g,P,mw);if(hover&&!['pan','ruler','mark','capital','city','road','rsrc'].includes(tool)){g.strokeStyle='#fff';g.lineWidth=1;g.beginPath();g.arc(hover.x,hover.y,+$('bsize').value*mw/W*(tool==='range'?.45:tool==='isle'?Math.min(1,10/+$('bsize').value):1),0,7);g.stroke()}}
+function pos(e){const g=s2g(e.offsetX,e.offsetY),c=cell(g.lon,g.lat);return{g,cx:c.cx,cy:c.cy}}
+c2.addEventListener('contextmenu',e=>e.preventDefault());
+c2.addEventListener('pointerdown',e=>{c2.setPointerCapture(e.pointerId);const p=pos(e);
+ if(e.button!==0||tool==='pan'){drag={x:e.clientX,y:e.clientY};return}
+ if(tool==='ruler'){mpts.length>=2&&(mpts=[]);mpts.push(p.g);readout(p.g);need2=true;if(mpts.length===2)$('info').textContent+=`\nВідстань: ${Math.round(dist(mpts[0],mpts[1]))} км`;return}
+ if(tool==='road'){const q=snapPt(p.g,$('roadCol').value)||{lon:p.g.lon,lat:p.g.lat};if(Math.abs(q.lat)>90||Math.abs(q.lon)>180)return;if(at(q.lon,q.lat)<S.p.sea){say('Дорогу можна прокладати лише по суші');return}
+ const d=roadDraft||(roadDraft={pts:[]}),l=d.pts[d.pts.length-1];if(l&&sameP(l,q))return;if(l&&roadWet(roadPts([l,q],false,12))){say('Ділянка перетинає воду');return}d.pts.push({lon:q.lon,lat:q.lat});need2=true;say('Точок: '+d.pts.length+'. Двічі клікніть або Enter — завершити; Backspace — прибрати точку; Esc — скасувати');return}
+ if(tool==='rsrc'){const i=clamp(Math.floor(p.cx),0,W-1),j=clamp(Math.floor(p.cy),0,H-1);if(p.cy<0||p.cy>=H||S.h[j*W+i]<S.p.sea){$('stat').textContent='Витік річки має бути на суші';return}const id=++S.rvNid;S.rivers.push({id,name:$('rivName').value||'Річка '+id,i,j});curRiv=id;recalcRivers();saveSoon();const r=rivOf(id);$('stat').textContent=r.end==='sink'?'Річка зупинилась у безстічній западині — зробіть нижче русло або озеро':'Річку прокладено';return}
+ 
+ if(tool==='city'){let c=cityOf(curCity);if(!c){addCity();c=cityOf(curCity)}if(!c)return;const t=cityTarget(p.g);if(!t){$('stat').textContent='Місто можна розмістити лише на суші';return}c.lon=t.lon;c.lat=t.lat;c.coast=!!t.snapped&&!t.road;c.roadId=t.road||0;if(c.cap)assignCap(c);capSync();stUI();cityUI();need2=true;needCities=true;mark();saveSoon();$('stat').textContent='Місто «'+c.name+'» розміщено'+(t.road?' на дорозі':t.snapped?' на узбережжі':' на мапі');return}
+ if(tool==='mark'){S.marks.push({lon:p.g.lon,lat:p.g.lat,text:$('mtext').value||'•'});need2=true;calcStats();saveSoon();return}
+ if(p.cy<0||p.cy>=H)return;if(tool==='border'&&!S.states.length)addState();if(tool==='region'&&!curReg)addRegion();if(tool==='region'&&!curReg){$('stat').textContent='Спочатку створіть державу й область';return}if(tool==='dist'&&!curDis&&regionOf(curReg))addDistrict();if(tool==='dist'&&!curDis){$('stat').textContent='Спочатку створіть область і район';return}pushUndo();painting=true;last=p;dab(p.cx,p.cy);mark();need2=true});
+c2.addEventListener('pointermove',e=>{const p=pos(e);hover={x:e.offsetX,y:e.offsetY};readout(p.g);need2=true;
+ if(drag){V.x+=e.clientX-drag.x;V.y+=e.clientY-drag.y;drag={x:e.clientX,y:e.clientY};return}
+ if(painting){const r=+$('bsize').value,dd=Math.hypot(p.cx-last.cx,p.cy-last.cy),n=Math.max(1,Math.ceil(dd/Math.max(1,r/4)));for(let k=1;k<=n;k++)dab(last.cx+(p.cx-last.cx)*k/n,last.cy+(p.cy-last.cy)*k/n);last=p;mark()}});
+const endp=()=>{drag=null;if(painting){painting=false;calcStats();mark();need3=true;saveSoon()}};c2.addEventListener('pointerup',endp);c2.addEventListener('pointercancel',endp);addEventListener('pointerup',endp);addEventListener('pointercancel',endp);addEventListener('blur',endp);c2.addEventListener('pointerleave',()=>{hover=null;need2=true});
+c2.addEventListener('wheel',e=>{e.preventDefault();const{mw}=geo(),nz2=clamp(V.z*(e.deltaY<0?1.2:1/1.2),1,40),f=nz2/V.z;V.x=e.offsetX-(e.offsetX-V.x)*f;V.y=e.offsetY-(e.offsetY-V.y)*f;V.z=nz2;need2=true},{passive:false});
+let ren,scene,cam,grp,globe,atmo,gpos0,ray,tex,cityLayer,roadLayer,riverLayer;const c3=$('c3');let rot=null;
+function init3d(){if(typeof THREE==='undefined'){$('ro3').textContent='Three.js не завантажено (потрібен інтернет до cdnjs)';return}
+ ren=new THREE.WebGLRenderer({canvas:c3,antialias:true});ren.outputEncoding=THREE.sRGBEncoding;scene=new THREE.Scene();cam=new THREE.PerspectiveCamera(40,1,.1,100);cam.position.z=3.2;
+ tex=new THREE.CanvasTexture(off);tex.encoding=THREE.sRGBEncoding;tex.anisotropy=4;grp=new THREE.Group();grp.rotation.y=-Math.PI/2;
+ globe=new THREE.Mesh(new THREE.SphereGeometry(1,128,64),new THREE.MeshStandardMaterial({map:tex,roughness:.95}));grp.add(globe);roadLayer=new THREE.Group();cityLayer=new THREE.Group();riverLayer=new THREE.Group();grp.add(riverLayer);grp.add(roadLayer);grp.add(cityLayer);scene.add(grp);
+ atmo=new THREE.Mesh(new THREE.SphereGeometry(1.05,48,24),new THREE.MeshBasicMaterial({transparent:true,opacity:.2,side:THREE.BackSide}));scene.add(atmo);
+ scene.add(new THREE.AmbientLight(0xffffff,.65));const dl=new THREE.DirectionalLight(0xffffff,.9);dl.position.set(3,2,4);scene.add(dl);ray=new THREE.Raycaster();
+ c3.addEventListener('pointerdown',e=>{c3.setPointerCapture(e.pointerId);rot={x:e.clientX,y:e.clientY}});c3.addEventListener('pointerup',()=>rot=null);c3.addEventListener('pointercancel',()=>rot=null);c3.addEventListener('contextmenu',e=>e.preventDefault());
+ c3.addEventListener('pointermove',e=>{if(rot){grp.rotation.y+=(e.clientX-rot.x)*.006;grp.rotation.x=clamp(grp.rotation.x+(e.clientY-rot.y)*.006,-1.4,1.4);rot={x:e.clientX,y:e.clientY}}
+  const r=c3.getBoundingClientRect();ray.setFromCamera({x:(e.clientX-r.left)/r.width*2-1,y:-((e.clientY-r.top)/r.height)*2+1},cam);const hit=ray.intersectObject(globe)[0];
+  if(hit){const lon=hit.uv.x*360-180,lat=hit.uv.y*180-90,v=at(lon,lat)-S.p.sea;$('ro3').textContent=`${lat.toFixed(2)}°, ${lon.toFixed(2)}° | ${v>=0?'висота':'глибина'} ${Math.round(Math.abs(v))} м`}});
+ c3.addEventListener('wheel',e=>{e.preventDefault();cam.position.z=clamp(cam.position.z*(e.deltaY>0?1.1:.91),1.5,8)},{passive:false})}
+function citySprite(cap){const cv=document.createElement('canvas');cv.width=cv.height=128;const g=cv.getContext('2d'),r=50;g.shadowColor='#000';g.shadowBlur=14;g.fillStyle=cap?'#ffc857':'#72b6ff';g.globalAlpha=.92;g.beginPath();g.arc(64,64,r,0,7);g.fill();g.globalAlpha=1;g.strokeStyle='#fff';g.lineWidth=5;g.beginPath();g.arc(64,64,r,0,7);g.stroke();if(cap){g.fillStyle='#17243a';g.beginPath();g.arc(64,64,12,0,7);g.fill();g.strokeStyle='#fff';g.lineWidth=3;g.stroke()}const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false}));return sp}
+function cityVector(lon,lat,r=1.014){const phi=(lon+180)*D,theta=(90-lat)*D;return new THREE.Vector3(-Math.cos(phi)*Math.sin(theta)*r,Math.cos(theta)*r,Math.sin(phi)*Math.sin(theta)*r)}
+function update3dCities(){if(!cityLayer)return;cityLayer.clear();if(!$('lcity').checked)return;S.cities.forEach(c=>{if(c.lon==null||c.lat==null)return;const sp=citySprite(c.cap);sp.position.copy(cityVector(c.lon,c.lat,1.014+Math.max(0,at(c.lon,c.lat)-S.p.sea)/1000/(ER*S.p.radius)*(+$('exag').value)));const sz=.016+cityRadius(c.pop)*.0035;sp.scale.set(sz,sz,1);cityLayer.add(sp)})}
+function update3dRoads(){if(!roadLayer)return;roadLayer.clear();if(!$('lroad').checked)return;const ex=+$('exag').value;
+ S.roads.forEach(r=>{const pts=roadPts(r.pts,r.curve,12).map(q=>cityVector(q.lon,q.lat,1.004+Math.max(0,at(q.lon,q.lat)-S.p.sea)/1000/(ER*S.p.radius)*ex));roadLayer.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:new THREE.Color(r.color||'#f5bf52')})))})}
+function disp(){if(!globe)return;const g=globe.geometry,pa=g.attributes.position,uv=g.attributes.uv,ex=+$('exag').value;if(!gpos0)gpos0=pa.array.slice();
+ for(let n=0;n<pa.count;n++){const i=Math.min(W-1,uv.getX(n)*W|0),j=Math.min(H-1,(1-uv.getY(n))*H|0),e=S.h[j*W+i]-S.p.sea,r=1+(e>0?e/1000/(ER*S.p.radius)*ex:0);pa.setXYZ(n,gpos0[3*n]*r,gpos0[3*n+1]*r,gpos0[3*n+2]*r)}pa.needsUpdate=true;g.computeVertexNormals()}
+function fit(){for(const[cv,p]of[[c2,$('p2')],[c3,$('p3')]]){const w=p.clientWidth,h=p.clientHeight;if(w&&h&&(cv.width!==w||cv.height!==h)){cv.width=w;cv.height=h;if(cv===c3&&ren){ren.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}need2=true}}}
+function frame(){fit();if(needTex){render();needTex=false;need2=true;if(tex)tex.needsUpdate=true;if(ren){scene.background=new THREE.Color(S.p.sky);atmo.material.color.set(S.p.atmo)}if(performance.now()-lastDisp>250&&!painting){need3=true}}
+ if(need3&&ren&&performance.now()-lastDisp>150){disp();need3=false;lastDisp=performance.now()}if(needCities&&ren){update3dCities();needCities=false}if(needRoads&&ren){update3dRoads();update3dRivers();needRoads=false}
+ if(need2){draw2d();need2=false}
+ if(ren&&$('p3').clientWidth){if($('auto').checked)grp.rotation.y+=.004*24/Math.max(.5,S.p.day);ren.render(scene,cam)}requestAnimationFrame(frame)}
+$('vmode').onchange=e=>{$('p2').style.display=e.target.value==='3'?'none':'';$('p3').style.display=e.target.value==='2'?'none':'';need2=true};
+let store=null;try{localStorage.setItem('wf.t','1');localStorage.removeItem('wf.t');store=localStorage}catch(e){}
+const mem={};const ls={get:k=>store?store.getItem(k):mem[k]||null,set:(k,v)=>{try{store?store.setItem(k,v):mem[k]=v;return true}catch(e){return false}},del:k=>store?store.removeItem(k):delete mem[k]};
+function b64(a){const u=new Uint8Array(new Int16Array(Array.from(a,v=>Math.round(v))).buffer);let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s)}
+function unb64(s){const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return Float32Array.from(new Int16Array(u.buffer))}
+function bb64(u){let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s)}
+function unb8(s){const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}
+function unb16(s){const u=unb8(s);return new Uint16Array(u.buffer.slice(u.byteOffset,u.byteOffset+u.byteLength))}
+const ser=w=>JSON.stringify({id:w.id,name:w.name,p:w.p,marks:w.marks,cities:w.cities,cityNid:w.cityNid,roads:w.roads,roadNid:w.roadNid,districts:w.districts,dnid:w.dnid,dis:bb64(new Uint8Array(w.dis.buffer)),rivers:w.rivers.map(r=>({id:r.id,name:r.name,i:r.i,j:r.j})),rvNid:w.rvNid,regions:w.regions,rnid:w.rnid,w:W,h:b64(w.h),states:w.states,nid:w.nid,own:bb64(w.own),reg:bb64(new Uint8Array(w.reg.buffer))});
+function deser(t){const o=JSON.parse(t);if(!o.h||o.w!==W)throw new Error('Невірний формат');const w=newW(o.name||'Імпорт');Object.assign(w.p,o.p);w.marks=o.marks||[];w.cities=Array.isArray(o.cities)?o.cities:[];w.cityNid=o.cityNid||w.cities.reduce((n,c)=>Math.max(n,c.id||0),0);w.roads=(Array.isArray(o.roads)?o.roads:[]).map(r=>({id:r.id,name:r.name,auto:r.auto!==undefined?!!r.auto:/^Дорога \d+$/.test(r.name||''),type:r.type||'local',color:r.color||(r.type==='main'?'#f5bf52':'#e9edf7'),curve:!!r.curve,pts:Array.isArray(r.pts)&&r.pts.length>1?r.pts:[r.from,r.to].filter(Boolean)})).filter(r=>r.pts.length>1);w.roadNid=o.roadNid||w.roads.reduce((n,r)=>Math.max(n,r.id||0),0);w.rivers=Array.isArray(o.rivers)?o.rivers.filter(r=>Number.isInteger(r.i)&&Number.isInteger(r.j)):[];w.rvNid=o.rvNid||w.rivers.reduce((n,r)=>Math.max(n,r.id||0),0);w.districts=Array.isArray(o.districts)?o.districts:[];w.dnid=o.dnid||w.districts.reduce((n,d)=>Math.max(n,d.id||0),0);if(o.dis){const u=unb16(o.dis);if(u.length===W*H)w.dis=u}w.regions=Array.isArray(o.regions)?o.regions:[];w.rnid=o.rnid||w.regions.reduce((n,r)=>Math.max(n,r.id||0),0);w.states=o.states||[];w.nid=o.nid||0;if(o.own){const u=unb8(o.own);if(u.length===W*H)w.own=u}if(o.reg){const r=unb16(o.reg);if(r.length===W*H)w.reg=r}w.h=unb64(o.h);if(w.h.length!==W*H)throw new Error('Невірний розмір карти');w.id=o.id||w.id;return w}
+const idx=()=>{try{return JSON.parse(ls.get('wf.index')||'[]')}catch(e){return[]}};
+function save(){const ix=idx().filter(x=>x.id!==S.id);ix.push({id:S.id,name:S.name});const ok=ls.set('wf.w.'+S.id,ser(S))&&ls.set('wf.index',JSON.stringify(ix))&&ls.set('wf.last',S.id);
+ $('stat').textContent=ok?'збережено '+new Date().toLocaleTimeString():'⚠ не вдалося зберегти (використайте експорт)';lib();typeof sbPushSoon==='function'&&sbPushSoon()}
+let st=0;function saveSoon(){clearTimeout(st);st=setTimeout(save,1500)}
+function setOpts(el,html){if(el.dataset.h===html)return;if(document.activeElement===el){el.dataset.h2=html;clearTimeout(el._ot);el._ot=setTimeout(()=>{if(document.activeElement!==el&&el.dataset.h2){el.dataset.h=el.dataset.h2;el.innerHTML=el.dataset.h2;delete el.dataset.h2}},400);return}el.dataset.h=html;el.innerHTML=html}
+function lib(){const ix=idx();setOpts($('lib'),ix.map(x=>`<option value="${x.id}"${x.id===S.id?' selected':''}>${x.name.replace(/</g,'&lt;')}</option>`).join(''))}
+function load(w){S=w;undo=[];redo=[];mpts=[];roadStart=null;curSt=S.states.length?S.states[0].id:0;curReg=S.regions.length?S.regions[0].id:0;curCity=S.cities.length?S.cities[0].id:0;curRoad=S.roads.length?S.roads[0].id:0;curRiv=S.rivers.length?S.rivers[0].id:0;sync();roadUI();needTex=need2=need3=needCities=needRoads=true;gpos0&&0;lib()}
+$('lib').onchange=e=>{save();try{load(deser(ls.get('wf.w.'+e.target.value)))}catch(x){alert('Не вдалося відкрити: '+x.message)}};
+$('bNew').onclick=()=>{save();load(newW('Новий світ '+(idx().length+1)));save()};$('bRnd').onclick=()=>{save();const w=newW('Світ '+(idx().length+1));load(w);gen();save()};
+$('bSave').onclick=save;$('bCopy').onclick=()=>{save();const w=deser(ser(S));w.id=newW('').id;w.name=S.name+' (копія)';load(w);save()};
+$('bDel').onclick=()=>{if(!confirm('Видалити світ «'+S.name+'»?'))return;ls.del('wf.w.'+S.id);ls.set('wf.index',JSON.stringify(idx().filter(x=>x.id!==S.id)));const ix=idx();if(ix.length)load(deser(ls.get('wf.w.'+ix[0].id)));else{load(newW('Новий світ'));save()}};
+function modal(t,n){$('mt').textContent=t;$('mb').replaceChildren(n);$('modal').hidden=false}$('mx').onclick=()=>$('modal').hidden=true;
+$('bExp').onclick=()=>{const d=document.createElement('div'),ta=document.createElement('textarea'),b=document.createElement('button');ta.value=ser(S);ta.readOnly=true;b.textContent='Копіювати';b.onclick=()=>{ta.select();try{navigator.clipboard.writeText(ta.value)}catch(e){document.execCommand('copy')}};d.append(ta,b);modal('Експорт JSON — скопіюйте й збережіть у файл .json',d)};
+$('bImp').onclick=()=>{const d=document.createElement('div'),ta=document.createElement('textarea'),f=document.createElement('input'),b=document.createElement('button');f.type='file';f.accept='.json';b.textContent='Імпортувати';
+ f.onchange=()=>{const r=new FileReader();r.onload=()=>ta.value=r.result;r.readAsText(f.files[0])};b.onclick=()=>{try{const w=deser(ta.value);w.id=newW('').id;save();load(w);save();$('modal').hidden=true}catch(e){alert('Помилка імпорту: '+e.message)}};d.append(ta,f,b);modal('Імпорт JSON — вставте текст або оберіть файл',d)};
+$('bPng').onclick=()=>{render();const c=document.createElement('canvas');c.width=W*3;c.height=H*3;const g=c.getContext('2d');g.imageSmoothingEnabled=true;g.drawImage(off,0,0,c.width,c.height);const i=new Image();i.src=c.toDataURL('image/png');const d=document.createElement('div');d.append(i);modal('PNG-карта — клік правою кнопкою / утримання → зберегти зображення',d)};
+const PAL=['#d94f4f','#4f7fd9','#e0b43a','#58b36a','#9a5fd1','#e07b39','#3cb9b9','#c45b9a'],stOf=id=>S.states.find(s=>s.id===id);
+function addState(){S.p.countryMode='multi';const id=++S.nid;if(id>255){S.nid=255;return}const c=PAL[(id-1)%8];S.states.push({id,name:'Держава '+id,color:c,f1:c,f2:'#ffffff',fp:'h',cap:null});curSt=id;stUI();mark()}
+function setCountryMode(mode){S.p.countryMode=mode;if(mode!=='single'){stUI();saveSoon();return}if(!stOf(curSt))addState();S.p.countryMode='single';const s=stOf(curSt);S.states=[s];S.regions=[];S.rnid=0;S.reg.fill(0);for(let k=0;k<W*H;k++)S.own[k]=S.h[k]>=S.p.sea?s.id:0;curSt=s.id;curReg=0;sync();mark();needTex=true;saveSoon()}
+const cityOf=id=>S.cities.find(c=>c.id===id);
+function addCity(){const id=++S.cityNid;S.cities.push({id,name:'Місто '+id,pop:100000,cap:false,lon:null,lat:null});curCity=id;cityUI();need2=true;needCities=true;saveSoon()}
+function cityUI(){worldUI();const c=cityOf(curCity),sel=$('citySel'); setOpts(sel,S.cities.map(x=>`<option value="${x.id}"${x.id===curCity?' selected':''}>${x.name.replace(/</g,'&lt;')}</option>`).join(''));for(const id of['cityName','cityPop','cityCap','cityDel'])$(id).disabled=!c;if(!c){$('cityInfo').textContent='Натисніть «+», щоб створити місто.';return}if(document.activeElement!==$('cityName'))$('cityName').value=c.name;$('cityPop').value=c.pop;$('cityCap').checked=!!c.cap;$('cityInfo').textContent=`Населення: ${formatPop(c.pop)}\nСтатус: ${c.cap?'столиця':'місто'}${c.coast?' (на узбережжі)':''}${roadOf(c.roadId)?' (на дорозі «'+roadOf(c.roadId).name+'»)':''}\nДержава: ${c.lon==null?'—':(stOf(S.own[idxAt(c.lon,c.lat)])?.name||'— (поза державами)')}\nКоординати: ${c.lon==null?'ще не розміщено':c.lat.toFixed(2)+'°, '+c.lon.toFixed(2)+'°'}${c.lon!=null&&at(c.lon,c.lat)<S.p.sea?'\n⚠ Місто опинилось у воді — перемістіть його':''}`}
+const regionOf=id=>S.regions.find(r=>r.id===id),RPAL=['#f6c85f','#6fbdc8','#d78ab8','#9fcf7a','#c9a475','#a58ae0'];
+function addRegion(){S.p.regionMode='multi';if(!stOf(curSt)){$('stat').textContent='Спочатку створіть або виберіть державу';return}const id=++S.rnid;if(id>65535){S.rnid=65535;return}S.regions.push({id,stateId:curSt,name:'Область '+id,color:RPAL[(id-1)%RPAL.length],kind:'Область'});curReg=id;regionUI();needTex=true;saveSoon()}
+function regionUI(){const rs=S.regions.filter(r=>r.stateId===curSt);if(!rs.some(r=>r.id===curReg))curReg=rs[0]?.id||0;const r=regionOf(curReg);distUI();setOpts($('regSel'),rs.map(x=>`<option value="${x.id}"${x.id===curReg?' selected':''}>${x.name.replace(/</g,'&lt;')}</option>`).join(''));for(const id of['regName','regCol','regKind','regDel'])$(id).disabled=!r;$('regMode').value=S.p.regionMode||'multi';if(!r){$('regInfo').textContent=curSt?'Натисніть «+», щоб створити область.':'Спершу оберіть державу.';return}if(document.activeElement!==$('regName'))$('regName').value=r.name;$('regCol').value=r.color;$('regKind').value=r.kind||'Область';$('regInfo').textContent=`Тип: ${r.kind||'Область'}\nДержава: ${stOf(r.stateId)?.name||'—'}\nПлоща: ${fmtKm(stats.ra&&stats.ra[r.id])}\nРайонів: ${S.districts.filter(d=>d.regionId===r.id).length}\nМежі малюються інструментом «Область +».`}
+function setRegionMode(mode){S.p.regionMode=mode;if(mode!=='single'){regionUI();saveSoon();return}if(!stOf(curSt)){S.p.regionMode='multi';regionUI();return}let r=S.regions.find(x=>x.stateId===curSt);if(!r){addRegion();r=regionOf(curReg)}S.p.regionMode='single';S.regions=S.regions.filter(x=>x.stateId!==curSt||x===r);for(let k=0;k<W*H;k++)if(S.own[k]===curSt)S.reg[k]=r.id;curReg=r.id;sync();mark();needTex=true;saveSoon()}
+const roadOf=id=>S.roads.find(r=>r.id===id);
+function finishRoad(){const d=roadDraft;if(!d)return;if(d.pts.length<2){roadDraft=null;need2=true;say('Потрібно щонайменше 2 точки');return}const curve=$('roadCurve').checked;if(roadWet(roadPts(d.pts,curve,12))){say('Крива перетинає воду — вимкніть «Крива» або приберіть точку (Backspace)');return}
+ const id=++S.roadNid;S.roads.push({id,name:$('roadName').value,auto:!$('roadName').value,type:$('roadType').value,color:$('roadCol').value,curve,pts:d.pts});curRoad=id;roadDraft=null;roadUI();need2=true;needRoads=true;saveSoon();const A=cityAt(d.pts[0]),B=cityAt(d.pts[d.pts.length-1]);say(A&&B?'Дорогу побудовано: '+A.name+' — '+B.name:'Дорогу побудовано, але '+(!A&&!B?'обидва кінці':!A?'початок':'кінець')+' не прикріплено до міста')}
+c2.addEventListener('dblclick',()=>{if(tool==='road')finishRoad()});
+addEventListener('keydown',e=>{if(tool!=='road'||!roadDraft||e.target.tagName==='TEXTAREA'||(e.target.tagName==='INPUT'&&['text','number'].includes(e.target.type)))return;if(e.key==='Enter')finishRoad();else if(e.key==='Escape'){roadDraft=null;need2=true}else if(e.key==='Backspace'){e.preventDefault();roadDraft.pts.pop();if(!roadDraft.pts.length)roadDraft=null;need2=true}});
+function roadUI(){const r=roadOf(curRoad),sel=$('roadSel');setOpts(sel,S.roads.map(x=>`<option value="${x.id}"${x.id===curRoad?' selected':''}>${rname(x).replace(/</g,'&lt;')}</option>`).join(''));$('roadDel').disabled=!r;if(!r){$('roadInfo').textContent='Ще немає доріг.';return}
+ if(document.activeElement!==$('roadName')){$('roadName').value=r.auto?'':r.name;$('roadName').placeholder=rname(r)}$('roadType').value=r.type;$('roadCol').value=r.color;$('roadCurve').checked=!!r.curve;const q=roadPts(r.pts,r.curve);let L=0;for(let t=1;t<q.length;t++)L+=dist(q[t-1],q[t]);
+ $('roadInfo').textContent=`Тип: ${r.type==='main'?'головна':'місцева'}\nДовжина: ${Math.round(L)} км\nПочаток: ${cn(r.pts[0])}\nКінець: ${cn(r.pts[r.pts.length-1])}\nТочок: ${r.pts.length}\nЗ'єднань на кінцях: ${roadLinks(r)}`}
+let curRoad=0;
+const flagImgs={};
+function drawFlag(cv,s){const g=cv.getContext('2d'),w=cv.width,h=cv.height;
+ if(s.flag){let im=flagImgs[s.flag];
+  if(!im){im=new Image();im.onload=()=>{try{drawFlag(cv,s)}catch(e){}};im.src=s.flag;flagImgs[s.flag]=im}
+  if(im.complete&&im.naturalWidth){g.clearRect(0,0,w,h);const sc=Math.max(w/im.naturalWidth,h/im.naturalHeight),dw=im.naturalWidth*sc,dh=im.naturalHeight*sc;g.drawImage(im,(w-dw)/2,(h-dh)/2,dw,dh);return}}
+ g.fillStyle=s.f1;g.fillRect(0,0,w,h);g.fillStyle=s.f2;if(s.fp==='h')g.fillRect(0,h/2,w,h/2);else if(s.fp==='v')g.fillRect(w/2,0,w/2,h);else{g.fillRect(0,h*.4,w,h*.2);g.fillRect(w*.3,0,w*.15,h)}}
+function legend(){const ly=$('layer').value,L=ly==='biome'?BIO:ly==='res'?RES:ly==='pol'?S.states.map(s=>[s.name,s.color]):null,t=ly==='temp'?'Температура: синій −30°C → жовтий 0 → червоний +30°C':ly==='prec'?'Опади: пісочний (сухо) → синій (2500 мм/рік)':'';$('lg').style.display=(L&&L.length)||t?'':'none';$('lg').innerHTML=L?L.map(x=>`<div><span style="display:inline-block;width:10px;height:10px;background:${x[1]};margin-right:5px"></span>${x[0].replace(/</g,'&lt;')}</div>`).join(''):t}
+function stUI(){worldUI();const s=stOf(curSt);$('countryMode').value=S.p.countryMode||'multi';setOpts($('stSel'),S.states.map(x=>`<option value="${x.id}"${x.id===curSt?' selected':''}>${x.name.replace(/</g,'&lt;')}</option>`).join(''));for(const id of['stName','stCol','stF1','stF2','stFp','stFlagF','stFlagClr'])$(id).disabled=!s;
+ if(s){if(document.activeElement!==$('stName'))$('stName').value=s.name;$('stCol').value=s.color;$('stF1').value=s.f1;$('stF2').value=s.f2;$('stFp').value=s.fp;drawFlag($('stFlag'),s);const a=((stats.sa&&stats.sa[s.id])||0)/stats.tot*stats.A/1e6;$('stInfo').textContent=`Площа: ${a.toFixed(2)} млн км²\nНаселення: ${formatPop(statePop(s.id))}${s.flag?'\nПрапор: зображення':'\nПрапор: намальований'}\nСтолиця: ${s.cap?(cityOf(s.capCity)?.name||s.cap.lat.toFixed(1)+'°, '+s.cap.lon.toFixed(1)+'°'):'не задана (позначте місто як столицю)'}`}else $('stInfo').textContent='Натисніть «+», щоб додати державу, потім малюйте кордони.';regionUI();legend()}
+$('stSel').onchange=e=>{curSt=+e.target.value;stUI()};$('stAdd').onclick=addState;
+$('countryMode').onchange=e=>setCountryMode(e.target.value);
+$('stDel').onclick=()=>{const s=stOf(curSt);if(!s||!confirm('Видалити державу «'+s.name+'»?'))return;pushUndo();for(let k=0;k<W*H;k++)if(S.own[k]===s.id){S.own[k]=0;S.reg[k]=0}S.regions=S.regions.filter(r=>r.stateId!==s.id);S.states=S.states.filter(x=>x!==s);S.p.countryMode='multi';curSt=S.states.length?S.states[0].id:0;sync();mark()};
+[['stName','name'],['stCol','color'],['stF1','f1'],['stF2','f2'],['stFp','fp']].forEach(([id,k])=>$(id).oninput=$(id).onchange=e=>{const s=stOf(curSt);if(s){s[k]=e.target.value;stUI();mark()}});
+$('stFlagF').onchange=e=>{const f=e.target.files&&e.target.files[0],s=stOf(curSt);if(!f||!s)return;const r=new FileReader();
+ r.onload=()=>{const im=new Image();im.onload=()=>{const cv=document.createElement('canvas');cv.width=240;cv.height=160;const g=cv.getContext('2d');const sc=Math.max(240/im.naturalWidth,160/im.naturalHeight),dw=im.naturalWidth*sc,dh=im.naturalHeight*sc;
+  g.fillStyle=s.f1;g.fillRect(0,0,240,160);g.drawImage(im,(240-dw)/2,(160-dh)/2,dw,dh);
+  try{s.flag=cv.toDataURL('image/png')}catch(err){s.flag=r.result}
+  stUI();mark();saveSoon();say('Прапор країни завантажено як зображення')};im.src=r.result};
+ r.readAsDataURL(f);e.target.value=''};
+$('stFlagClr').onclick=()=>{const s=stOf(curSt);if(!s||!s.flag)return;delete s.flag;stUI();mark();saveSoon();say('Прапор знову намальований з кольорів')};
+$('regSel').onchange=e=>{curReg=+e.target.value;regionUI()};$('regAdd').onclick=addRegion;$('regMode').onchange=e=>setRegionMode(e.target.value);
+$('regDel').onclick=()=>{const r=regionOf(curReg);if(!r||!confirm('Видалити область «'+r.name+'»?'))return;for(let k=0;k<W*H;k++)if(S.reg[k]===r.id)S.reg[k]=0;S.regions=S.regions.filter(x=>x!==r);curReg=0;sync();needTex=true;saveSoon()};
+[['regName','name'],['regCol','color'],['regKind','kind']].forEach(([id,k])=>$(id).oninput=$(id).onchange=e=>{const r=regionOf(curReg);if(r){r[k]=e.target.value;regionUI();needTex=true;saveSoon()}});
+$('roadSel').onchange=e=>{curRoad=+e.target.value;roadUI()};
+$('roadFinish').onclick=finishRoad;$('roadCancel').onclick=()=>{roadDraft=null;need2=true};
+$('roadCurve').onchange=e=>{const r=roadOf(curRoad);if(!r||tool==='road')return;if(roadWet(roadPts(r.pts,e.target.checked,12))){e.target.checked=!!r.curve;say('Крива перетинає воду');return}r.curve=e.target.checked;roadUI();need2=true;needRoads=true;saveSoon()};
+$('roadDel').onclick=()=>{const r=roadOf(curRoad);if(!r||!confirm('Видалити дорогу «'+rname(r)+'»?'))return;S.roads=S.roads.filter(x=>x!==r);curRoad=S.roads[0]?.id||0;roadUI();need2=true;needRoads=true;saveSoon()};
+[['roadName','name'],['roadType','type'],['roadCol','color']].forEach(([id,k])=>$(id).oninput=$(id).onchange=e=>{const r=roadOf(curRoad);if(r&&tool!=='road'){r[k]=e.target.value;if(k==='name')r.auto=!r.name;roadUI();need2=true;needRoads=true;saveSoon()}});
+$('citySel').onchange=e=>{curCity=+e.target.value;cityUI()};$('cityAdd').onclick=addCity;
+$('cityDel').onclick=()=>{const c=cityOf(curCity);if(!c||!confirm('Видалити місто «'+c.name+'»?'))return;S.cities=S.cities.filter(x=>x!==c);capSync();stUI();curCity=S.cities.length?S.cities[0].id:0;cityUI();need2=true;needCities=true;saveSoon()};
+[['cityName','name'],['cityPop','pop'],['cityCap','cap']].forEach(([id,k])=>$(id).oninput=$(id).onchange=e=>{const c=cityOf(curCity);if(!c)return;c[k]=k==='pop'?Math.max(0,+e.target.value||0):k==='cap'?e.target.checked:e.target.value;if(k==='cap'&&c.cap)assignCap(c);capSync();stUI();cityUI();need2=true;needCities=true;saveSoon()});
+
+const kll=k=>({lon:(k%W+.5)/W*360-180,lat:90-((k/W|0)+.5)/H*180}),rivOf=id=>S.rivers.find(r=>r.id===id);
+function waterBodies(){const n=W*H,h=S.h,sea=S.p.sea;wlab.fill(0);const info=[];let L=0;
+ for(let s0=0;s0<n;s0++){if(h[s0]>=sea||wlab[s0])continue;L++;let a=0,b=0,aw=0;wq[b++]=s0;wlab[s0]=L;
+  while(a<b){const k=wq[a++],j=(k/W)|0,i=k-j*W;aw+=Math.cos((90-(j+.5)/H*180)*D);const nb=[j*W+(i+1)%W,j*W+(i+W-1)%W];if(j>0)nb.push(k-W);if(j<H-1)nb.push(k+W);for(const m of nb)if(h[m]<sea&&!wlab[m]){wlab[m]=L;wq[b++]=m}}
+  info.push({id:L,aw,rep:s0})}
+ let oc=0,best=-1;info.forEach(x=>{if(x.aw>best){best=x.aw;oc=x.id}});LK.fill(0);for(let k=0;k<n;k++)if(wlab[k]&&wlab[k]!==oc)LK[k]=1;
+ lakes=info.filter(x=>x.id!==oc).map(x=>({id:x.id,rep:x.rep,area:x.aw/stats.tot*stats.A})).sort((a,b)=>b.area-a.area);
+ $('lakeInfo').textContent=lakes.length?'Озера (за площею, км²):\n'+lakes.slice(0,8).map((l,i)=>`${i+1}. ${Math.round(l.area).toLocaleString('uk-UA')} км² — ${kll(l.rep).lat.toFixed(1)}°, ${kll(l.rep).lon.toFixed(1)}°`).join('\n')+(lakes.length>8?`\n… і ще ${lakes.length-8}`:''):'Озер немає'}
+function traceRiver(i,j){const h=S.h,sea=S.p.sea,P=[],seen=new Set();let k=j*W+i,end='';if(h[k]<sea)return{P,end:'flooded'};
+ for(let n=0;n<4000;n++){P.push(k);seen.add(k);if(h[k]<sea){end='water';break}const ci=k%W,cj=(k/W)|0;let b=-1,bv=h[k];
+  for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){if(!di&&!dj)continue;const nj=cj+dj;if(nj<0||nj>=H)continue;const m=nj*W+(ci+di+W)%W;if(h[m]<bv&&!seen.has(m)){bv=h[m];b=m}}
+  if(b<0){end='sink';break}k=b}return{P,end}}
+function recalcRivers(){S.rivers.forEach(r=>{const t=traceRiver(r.i,r.j);r.P=t.P;r.end=t.end});needRoads=needCities=true;need2=true;rivUI()}
+function rivUI(){const r=rivOf(curRiv),sel=$('rivSel'); setOpts(sel,S.rivers.map(x=>`<option value="${x.id}"${x.id===curRiv?' selected':''}>${x.name.replace(/</g,'&lt;')}</option>`).join(''));$('rivDel').disabled=$('rivName').disabled=!r;
+ if(!r){$('rivInfo').textContent='Ще немає річок.';return}if(document.activeElement!==$('rivName'))$('rivName').value=r.name;
+ let L=0;for(let t=1;t<r.P.length;t++)L+=dist(kll(r.P[t-1]),kll(r.P[t]));const last=r.P[r.P.length-1],src=S.h[r.j*W+r.i]-S.p.sea;
+ const mouth=r.end==='water'?(LK[last]?'впадає в озеро':'впадає в море/океан'):r.end==='sink'?'зупинилась у безстічній западині':r.end==='flooded'?'витік затоплено':'дуже довге русло';
+ $('rivInfo').textContent=`Довжина: ${Math.round(L)} км\nВисота витоку: ${Math.round(src)} м\nУстя: ${mouth}`}
+function drawRivers2d(g,mw,mh){if(!$('lriver').checked)return;g.save();g.lineCap=g.lineJoin='round';
+ S.rivers.forEach(r=>{const p=r.P;if(!p||p.length<2)return;const n=p.length;for(let t=1;t<n;t++){const a=p[t-1],b=p[t],ax=a%W,ay=a/W|0,bx=b%W,by=b/W|0;if(Math.abs(ax-bx)>W/2)continue;g.strokeStyle=r.id===curRiv?'#a6ecff':'#3f9be0';g.lineWidth=1+t/n*2.2+(V.z>3?1:0);g.beginPath();g.moveTo(V.x+(ax+.5)/W*mw,V.y+(ay+.5)/H*mh);g.lineTo(V.x+(bx+.5)/W*mw,V.y+(by+.5)/H*mh);g.stroke()}
+  const s0=p[0];g.fillStyle='#fff';g.beginPath();g.arc(V.x+(s0%W+.5)/W*mw,V.y+((s0/W|0)+.5)/H*mh,2.5,0,7);g.fill();
+  if(V.z>=2){const m=p[p.length>>1];g.font='italic 11px sans-serif';g.lineWidth=3;g.strokeStyle='#07101d';const x=V.x+(m%W+.5)/W*mw+4,y=V.y+((m/W|0)+.5)/H*mh-4;g.strokeText(r.name,x,y);g.fillStyle='#bfe9ff';g.fillText(r.name,x,y)}});g.restore()}
+function update3dRivers(){if(!riverLayer)return;riverLayer.clear();if(!$('lriver').checked)return;const ex=+$('exag').value;
+ S.rivers.forEach(r=>{if(!r.P||r.P.length<2)return;const pts=r.P.map(k=>{const q=kll(k),e=Math.max(0,S.h[k]-S.p.sea);return cityVector(q.lon,q.lat,1.003+e/1000/(ER*S.p.radius)*ex)});
+  riverLayer.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0x4db3ff})))})}
+$('exag').addEventListener('input',()=>{needRoads=needCities=true});
+$('rivSel').onchange=e=>{curRiv=+e.target.value;rivUI();need2=true};
+$('rivDel').onclick=()=>{const r=rivOf(curRiv);if(!r||!confirm('Видалити річку «'+r.name+'»?'))return;S.rivers=S.rivers.filter(x=>x!==r);curRiv=S.rivers[0]?.id||0;recalcRivers();saveSoon()};
+$('rivName').oninput=e=>{const r=rivOf(curRiv);if(r){r.name=e.target.value;need2=true;saveSoon()}};
+const districtOf=id=>S.districts.find(d=>d.id===id),DPAL=['#ff9aa2','#b5ead7','#c7ceea','#ffdac1','#e2f0cb','#f8c8dc'];
+const fmtKm=w=>{const a=(w||0)/stats.tot*stats.A;return Math.round(a).toLocaleString('uk-UA')+' км²'};
+function addDistrict(){if(!regionOf(curReg)){$('stat').textContent='Спочатку створіть область';return}const id=++S.dnid;if(id>65535){S.dnid=65535;return}S.districts.push({id,regionId:curReg,name:'Район '+id,color:DPAL[(id-1)%DPAL.length],kind:'Район'});curDis=id;distUI();needTex=true;saveSoon()}
+function distUI(){const ds=S.districts.filter(d=>d.regionId===curReg);if(!ds.some(d=>d.id===curDis))curDis=ds[0]?.id||0;const d=districtOf(curDis);
+ setOpts($('distSel'),ds.map(x=>`<option value="${x.id}"${x.id===curDis?' selected':''}>${x.name.replace(/</g,'&lt;')}</option>`).join(''));for(const id of['distName','distCol','distKind','distDel'])$(id).disabled=!d;$('distAdd').disabled=!regionOf(curReg);
+ if(!d){$('distInfo').textContent=regionOf(curReg)?'Натисніть «+», щоб створити район.':'Спершу створіть область.';return}
+ if(document.activeElement!==$('distName'))$('distName').value=d.name;$('distCol').value=d.color;$('distKind').value=d.kind||'Район';$('distInfo').textContent=`Тип: ${d.kind||'Район'}\nОбласть: ${regionOf(d.regionId)?.name||'—'}\nПлоща: ${fmtKm(stats.da&&stats.da[d.id])}`}
+function drawAdminLabels(g,mw,mh){g.save();g.textAlign='center';g.textBaseline='middle';g.lineJoin='round';
+ const put=(map,list,minZ,font,col)=>{if(V.z<minZ)return;g.font=font;list.forEach(o=>{const c=map[o.id];if(!c||c.n<4)return;const ci=((c.i0+c.dx/c.n)%W+W)%W,x=V.x+(ci+.5)/W*mw,y=V.y+(c.sy/c.n+.5)/H*mh;if(x<-80||y<-20||x>g.canvas.width+80||y>g.canvas.height+20)return;g.lineWidth=3;g.strokeStyle='#07101d';g.strokeText(o.name,x,y);g.fillStyle=col;g.fillText(o.name,x,y)})};
+ put(LBr,S.regions,1.3,'italic 600 11px system-ui,sans-serif','#ffe9a8');put(LBd,S.districts,3,'10px system-ui,sans-serif','#d6efff');g.restore()}
+$('distSel').onchange=e=>{curDis=+e.target.value;distUI()};$('distAdd').onclick=addDistrict;
+$('distDel').onclick=()=>{const d=districtOf(curDis);if(!d||!confirm('Видалити район «'+d.name+'»?'))return;for(let k=0;k<W*H;k++)if(S.dis[k]===d.id)S.dis[k]=0;S.districts=S.districts.filter(x=>x!==d);curDis=0;sync();needTex=true;saveSoon()};
+[['distName','name'],['distCol','color'],['distKind','kind']].forEach(([id,k])=>$(id).oninput=$(id).onchange=e=>{const d=districtOf(curDis);if(d){d[k]=e.target.value;distUI();needTex=true;need2=true;saveSoon()}});
+try{init3d()}catch(e){$('ro3').textContent='WebGL недоступний: '+e.message}
+try{const l=ls.get('wf.last');load(l&&ls.get('wf.w.'+l)?deser(ls.get('wf.w.'+l)):(()=>{const w=newW('Мій перший світ');S=w;gen();return w})())}catch(e){S=newW('Мій перший світ');gen();load(S)}
+requestAnimationFrame(frame);
+</script>
+<script>
+const SB={client:null,ch:null,me:'u'+Math.random().toString(36).slice(2,9),rev:0,pushT:null,pullT:null,skipPushUntil:0,connected:false};
+const sbSQL=`create table if not exists public.worlds (
+  code text primary key,
+  data text not null,
+  rev bigint not null default 0,
+  updated_by text,
+  updated_at timestamptz default now()
+);
+alter table public.worlds enable row level security;
+create policy "worlds_rw" on public.worlds for all using (true) with check (true);`;
+const sbSet=(t,k)=>{const e=$('sbState');e.textContent=t;if(k)e.dataset.k=k;else delete e.dataset.k};
+const sbInfo=t=>$('sbInfo').textContent=t;
+const sbCfg=()=>({url:($('sbUrl').value||'').trim(),key:($('sbKey').value||'').trim(),room:(($('sbRoom').value||'').trim()||'MYWORLD').toUpperCase()});
+try{const c=JSON.parse(ls.get('wf.sb.cfg')||'null');if(c){$('sbUrl').value=c.url||'';$('sbKey').value=c.key||'';$('sbRoom').value=c.room||'MYWORLD'}}catch(e){}
+$('sbSql').textContent=sbSQL;
+function sbErr(e){const m=(e&&e.message)||String(e);if(/does not exist|PGRST205|42P01|schema cache|Could not find/i.test(m))sbInfo('Таблицю не знайдено. Виконайте у Supabase → SQL Editor:\n\n'+sbSQL);else sbInfo('Помилка Supabase: '+m);sbSet('помилка')}
+function sbPushSoon(){clearTimeout(SB.pushT);SB.pushT=setTimeout(sbPush,1800)}
+async function sbPush(){if(!SB.connected||!SB.client||Date.now()<SB.skipPushUntil)return;const c=sbCfg();const data=ser(S),rev=SB.rev+1;
+ const{error}=await SB.client.from('worlds').upsert({code:c.room,data,rev,updated_by:SB.me,updated_at:new Date().toISOString()});
+ if(error){sbErr(error);return}SB.rev=rev;sbInfo('Відправлено партнеру: rev '+rev+' · '+Math.round(data.length/1024)+' КБ');
+ try{await SB.ch.send({type:'broadcast',event:'ping',payload:{rev,by:SB.me}})}catch(e){}}
+async function sbPull(force){if(!SB.connected||!SB.client)return;const c=sbCfg();
+ const{data,error}=await SB.client.from('worlds').select('data,rev,updated_by').eq('code',c.room).maybeSingle();
+ if(error){sbErr(error);return}
+ if(!data){sbInfo('Кімната «'+c.room+'» порожня — відправляю ваш світ');SB.rev=0;sbPush();return}
+ if(!force&&data.rev<=SB.rev)return;sbApply(data)}
+function sbApply(row){if(painting){setTimeout(()=>sbApply(row),700);return}
+ try{const w=deser(row.data);SB.rev=row.rev;SB.skipPushUntil=Date.now()+4000;load(w);save();sbInfo('Світ синхронізовано з партнером (rev '+row.rev+')')}catch(e){sbInfo('Не вдалося застосувати дані: '+e.message)}}
+function sbDisconnect(){if(SB.client&&SB.ch){try{SB.client.removeChannel(SB.ch)}catch(e){}}SB.ch=null;SB.connected=false;$('sbConn').textContent='Приєднатись';sbSet('відключено')}
+async function sbConnect(){
+ if(typeof supabase==='undefined'){sbSet('немає бібліотеки');sbInfo('Не вдалося завантажити supabase-js — перевірте інтернет');return}
+ const c=sbCfg();
+ if(!c.url||!c.key){sbSet('заповніть поля');sbInfo('Вкажіть URL проєкту Supabase та anon-ключ (Dashboard → Settings → API)');return}
+ try{localStorage.setItem('wf.sb.cfg',JSON.stringify(c))}catch(e){}
+ try{sbDisconnect();
+  SB.client=supabase.createClient(c.url,c.key,{auth:{persistSession:false,autoRefreshToken:false}});
+  SB.rev=0;
+  SB.ch=SB.client.channel('wf-room-'+c.room,{config:{broadcast:{self:false},presence:{key:SB.me}}});
+  SB.ch.on('presence',{event:'sync'},()=>{try{const n=Object.keys(SB.ch.presenceState()||{}).length;$('sbPeers').textContent=n?('онлайн: '+n):''}catch(e){}});
+  SB.ch.on('broadcast',{event:'ping'},({payload})=>{if(!payload||payload.by===SB.me)return;if(payload.rev>SB.rev){clearTimeout(SB.pullT);SB.pullT=setTimeout(()=>sbPull(false),400)}});
+  const st=await SB.ch.subscribe(s=>{if(s==='SUBSCRIBED'){SB.connected=true;$('sbConn').textContent='Відключитись';sbSet('підключено','ok');try{SB.ch.track({t:Date.now()})}catch(e){}sbPull(false)}else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT'||s==='CLOSED'){SB.connected=false;$('sbConn').textContent='Приєднатись';sbSet(String(s).toLowerCase())}});
+  if(st&&st!=='SUBSCRIBED'&&st!=='CLOSED'){sbSet(String(st).toLowerCase())}
+  setTimeout(()=>{if(!SB.connected&&SB.ch)sbSet('очікування… перевірте URL і мережу')},9000);
+ }catch(e){SB.connected=false;$('sbConn').textContent='Приєднатись';sbSet('помилка');sbInfo('Не вдалося підключитись: '+(e&&e.message||e))}
+}
+$('sbConn').onclick=()=>{if(SB.connected)sbDisconnect();else sbConnect()};
+$('sbPull').onclick=()=>sbPull(true);
+addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('modal').hidden)$('modal').hidden=true});
+$('modal').addEventListener('click',e=>{if(e.target===$('modal'))$('modal').hidden=true});
+addEventListener('pointerup',()=>{try{rot=null}catch(e){}});
+const bSideSet=h=>{document.body.classList.toggle('hide-side',h);$('bSide').classList.toggle('on',!h)};
+$('bSide').onclick=()=>{const h=!document.body.classList.contains('hide-side');bSideSet(h);try{ls.set('wf.side',h?'0':'1')}catch(e){}};
+try{bSideSet(ls.get('wf.side')==='0'||(innerWidth<980&&ls.get('wf.side')!=='1'))}catch(e){}
+addEventListener('keydown',e=>{if(['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName))return;if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='b'){e.preventDefault();$('bSide').click()}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();save();say('Збережено вручну (Ctrl+S)')}});
+</script></body></html>

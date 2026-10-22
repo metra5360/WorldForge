@@ -474,7 +474,7 @@ try{const l=ls.get('wf.last');load(l&&ls.get('wf.w.'+l)?deser(ls.get('wf.w.'+l))
 requestAnimationFrame(frame);
 </script>
 <script>
-const SB={client:null,ch:null,me:'u'+Math.random().toString(36).slice(2,9),rev:0,pushT:null,pullT:null,skipPushUntil:0,connected:false};
+const SB={client:null,ch:null,me:'u'+Math.random().toString(36).slice(2,9),rev:0,pushT:null,pullT:null,skipPushUntil:0,connected:false,on:false,wait:1500,retryT:null};
 const sbSQL=`create table if not exists public.worlds (
   code text primary key,
   data text not null,
@@ -486,10 +486,19 @@ alter table public.worlds enable row level security;
 create policy "worlds_rw" on public.worlds for all using (true) with check (true);`;
 const sbSet=(t,k)=>{const e=$('sbState');e.textContent=t;if(k)e.dataset.k=k;else delete e.dataset.k};
 const sbInfo=t=>$('sbInfo').textContent=t;
-const sbCfg=()=>({url:($('sbUrl').value||'').trim(),key:($('sbKey').value||'').trim(),room:(($('sbRoom').value||'').trim()||'MYWORLD').toUpperCase()});
+function sbFixUrl(u){u=(u||'').trim();if(!u)return'';
+ const dm=u.match(/dashboard\/project\/([a-z0-9]+)/i);if(dm)return'https://'+dm[1]+'.supabase.co';
+ if(!/^https?:\/\//i.test(u))u='https://'+u;
+ try{const q=new URL(u);u=q.protocol+'//'+q.host}catch(e){}
+ return u.replace(/\/+$/,'')}
+const sbCfg=()=>({url:sbFixUrl($('sbUrl').value),key:($('sbKey').value||'').trim(),room:(($('sbRoom').value||'').trim()||'MYWORLD').toUpperCase()});
 try{const c=JSON.parse(ls.get('wf.sb.cfg')||'null');if(c){$('sbUrl').value=c.url||'';$('sbKey').value=c.key||'';$('sbRoom').value=c.room||'MYWORLD'}}catch(e){}
 $('sbSql').textContent=sbSQL;
-function sbErr(e){const m=(e&&e.message)||String(e);if(/does not exist|PGRST205|42P01|schema cache|Could not find/i.test(m))sbInfo('Таблицю не знайдено. Виконайте у Supabase → SQL Editor:\n\n'+sbSQL);else sbInfo('Помилка Supabase: '+m);sbSet('помилка')}
+function sbErr(e){const m=(e&&e.message)||String(e);
+ if(/requested path is invalid/i.test(m))sbInfo('Supabase відповів «requested path is invalid» — це означає, що URL вказано невірно: потрібна саме адреса проєкту у вигляді https://xxxx.supabase.co, без «/rest/v1» та інших дописів у кінці. Посилання з панелі Supabase (dashboard/project/…) теж підійде — програма сама його виправить.');
+ else if(/invalid api key|jwt|401|not authorized|Row-level security/i.test(m))sbInfo('Supabase відмовив у доступі (401) — перевірте anon-ключ: він має починатися з «eyJ…» (Dashboard → Settings → API).');
+ else if(/does not exist|PGRST205|42P01|schema cache|Could not find/i.test(m))sbInfo('Таблицю не знайдено. Виконайте у Supabase → SQL Editor:\n\n'+sbSQL);
+ else sbInfo('Помилка Supabase: '+m);sbSet('помилка')}
 function sbPushSoon(){clearTimeout(SB.pushT);SB.pushT=setTimeout(sbPush,1800)}
 async function sbPush(){if(!SB.connected||!SB.client||Date.now()<SB.skipPushUntil)return;const c=sbCfg();const data=ser(S),rev=SB.rev+1;
  const{error}=await SB.client.from('worlds').upsert({code:c.room,data,rev,updated_by:SB.me,updated_at:new Date().toISOString()});
@@ -502,24 +511,30 @@ async function sbPull(force){if(!SB.connected||!SB.client)return;const c=sbCfg()
  if(!force&&data.rev<=SB.rev)return;sbApply(data)}
 function sbApply(row){if(painting){setTimeout(()=>sbApply(row),700);return}
  try{const w=deser(row.data);SB.rev=row.rev;SB.skipPushUntil=Date.now()+4000;load(w);save();sbInfo('Світ синхронізовано з партнером (rev '+row.rev+')')}catch(e){sbInfo('Не вдалося застосувати дані: '+e.message)}}
-function sbDisconnect(){if(SB.client&&SB.ch){try{SB.client.removeChannel(SB.ch)}catch(e){}}SB.ch=null;SB.connected=false;$('sbConn').textContent='Приєднатись';sbSet('відключено')}
-async function sbConnect(){
- if(typeof supabase==='undefined'){sbSet('немає бібліотеки');sbInfo('Не вдалося завантажити supabase-js — перевірте інтернет');return}
+function sbDrop(){if(SB.client&&SB.ch){try{SB.client.removeChannel(SB.ch)}catch(e){}}SB.ch=null;SB.connected=false}
+function sbRetry(){clearTimeout(SB.retryT);if(!SB.on)return;const w=SB.wait;SB.wait=Math.min(15000,Math.round(SB.wait*1.7));SB.retryT=setTimeout(()=>{if(SB.on&&!SB.connected)sbConnect()},w)}
+function sbStop(){SB.on=false;clearTimeout(SB.retryT);SB.wait=1500;sbDrop();$('sbConn').textContent='Приєднатись';sbSet('відключено');sbInfo('Синхронізацію вимкнено вручну');try{ls.del('wf.sb.on')}catch(e){}}
+async function sbConnect(usr){
+ if(typeof supabase==='undefined'){sbSet('немає бібліотеки');sbInfo('Не вдалося завантажити supabase-js — перевірте інтернет');if(SB.on)sbRetry();return}
  const c=sbCfg();
- if(!c.url||!c.key){sbSet('заповніть поля');sbInfo('Вкажіть URL проєкту Supabase та anon-ключ (Dashboard → Settings → API)');return}
+ if(!c.url||!c.key){sbSet('заповніть поля');sbInfo('Вкажіть URL проєкту Supabase та anon-ключ (Dashboard → Settings → API)');SB.on=false;return}
+ if($('sbUrl').value.trim()!==c.url)$('sbUrl').value=c.url;
+ clearTimeout(SB.retryT);
+ if(usr){SB.on=true;SB.wait=1500;$('sbConn').textContent='Відключитись';try{ls.set('wf.sb.on','1')}catch(e){}}
  try{localStorage.setItem('wf.sb.cfg',JSON.stringify(c))}catch(e){}
- try{sbDisconnect();
+ try{sbDrop();
   SB.client=supabase.createClient(c.url,c.key,{auth:{persistSession:false,autoRefreshToken:false}});
   SB.rev=0;
   SB.ch=SB.client.channel('wf-room-'+c.room,{config:{broadcast:{self:false},presence:{key:SB.me}}});
   SB.ch.on('presence',{event:'sync'},()=>{try{const n=Object.keys(SB.ch.presenceState()||{}).length;$('sbPeers').textContent=n?('онлайн: '+n):''}catch(e){}});
   SB.ch.on('broadcast',{event:'ping'},({payload})=>{if(!payload||payload.by===SB.me)return;if(payload.rev>SB.rev){clearTimeout(SB.pullT);SB.pullT=setTimeout(()=>sbPull(false),400)}});
-  const st=await SB.ch.subscribe(s=>{if(s==='SUBSCRIBED'){SB.connected=true;$('sbConn').textContent='Відключитись';sbSet('підключено','ok');try{SB.ch.track({t:Date.now()})}catch(e){}sbPull(false)}else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT'||s==='CLOSED'){SB.connected=false;$('sbConn').textContent='Приєднатись';sbSet(String(s).toLowerCase())}});
-  if(st&&st!=='SUBSCRIBED'&&st!=='CLOSED'){sbSet(String(st).toLowerCase())}
-  setTimeout(()=>{if(!SB.connected&&SB.ch)sbSet('очікування… перевірте URL і мережу')},9000);
- }catch(e){SB.connected=false;$('sbConn').textContent='Приєднатись';sbSet('помилка');sbInfo('Не вдалося підключитись: '+(e&&e.message||e))}
+  const st=await SB.ch.subscribe(s=>{if(s==='SUBSCRIBED'){SB.connected=true;SB.wait=1500;$('sbConn').textContent=SB.on?'Відключитись':'Приєднатись';sbSet('підключено','ok');try{SB.ch.track({t:Date.now()})}catch(e){}sbPull(false)}else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT'||s==='CLOSED'){SB.connected=false;if(SB.on){$('sbConn').textContent='Відключитись';sbSet('перепідключення…');sbRetry()}else{$('sbConn').textContent='Приєднатись';sbSet(String(s).toLowerCase())}}});
+  if(st&&st!=='SUBSCRIBED'&&st!=='CLOSED'&&typeof st==='string'){sbSet(st.toLowerCase());if(SB.on){$('sbConn').textContent='Відключитись';sbRetry()}}else if(st&&typeof st==='object'&&st!=='SUBSCRIBED'){if(SB.on){$('sbConn').textContent='Відключитись';sbSet('очікування…');sbRetry()}}
+  setTimeout(()=>{if(SB.on&&!SB.connected&&SB.ch){sbSet('очікування… перепідключаюся');sbRetry()}},9000);
+ }catch(e){SB.connected=false;if(SB.on){$('sbConn').textContent='Відключитись';sbSet('перепідключення…');sbInfo('Не вдалося підключитись: '+(e&&e.message||e)+'. Повторю спробу…');sbRetry()}else{$('sbConn').textContent='Приєднатись';sbSet('помилка');sbInfo('Не вдалося підключитись: '+(e&&e.message||e))}}
 }
-$('sbConn').onclick=()=>{if(SB.connected)sbDisconnect();else sbConnect()};
+$('sbConn').onclick=()=>{if(SB.on)sbStop();else sbConnect(true)};
+try{if(ls.get('wf.sb.on')==='1'&&$('sbUrl').value&&$('sbKey').value){SB.on=true;$('sbConn').textContent='Відключитись';sbSet('запуск…');setTimeout(()=>sbConnect(),700)}}catch(e){}
 $('sbPull').onclick=()=>sbPull(true);
 addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('modal').hidden)$('modal').hidden=true});
 $('modal').addEventListener('click',e=>{if(e.target===$('modal'))$('modal').hidden=true});
